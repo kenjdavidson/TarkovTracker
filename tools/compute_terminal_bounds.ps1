@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$configDir = Join-Path (Split-Path $toolsDir -Parent) 'Config'
 $toolsDataDir = Join-Path $toolsDir 'data'
+
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
 function Get-MapPixels($gameX, $gameZ, $rotation, $transform) {
     $lat = $gameZ; $lng = $gameX
@@ -39,10 +40,18 @@ function Get-Normalized($gameX, $gameZ, $bounds, $rotation, $transform) {
     return @($nx, $ny)
 }
 
-$q = '{ maps { normalizedName spawns { position { x z } } } }'
-$t = ((Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body (@{query=$q}|ConvertTo-Json)).data.maps | Where-Object normalizedName -eq 'terminal')
-$xs = $t.spawns | ForEach-Object { [double]$_.position.x }
-$zs = $t.spawns | ForEach-Object { [double]$_.position.z }
+$t = Get-TarkovJsonMap -NormalizedName 'terminal'
+if ($null -eq $t) {
+    throw 'Terminal map not found in json.tarkov.dev maps dump.'
+}
+
+$spawns = @($t.spawns | Where-Object { $_ -and $_.position })
+if ($spawns.Count -eq 0) {
+    throw 'json.tarkov.dev has no Terminal spawns to compute bounds from.'
+}
+
+$xs = $spawns | ForEach-Object { [double]$_.position.x }
+$zs = $spawns | ForEach-Object { [double]$_.position.z }
 $minX = ($xs | Measure-Object -Minimum).Minimum
 $maxX = ($xs | Measure-Object -Maximum).Maximum
 $minZ = ($zs | Measure-Object -Minimum).Minimum
@@ -60,7 +69,7 @@ $rotation = 180
 Write-Output "Computed Terminal bounds from spawns:"
 Write-Output "  [[$($newBounds[0][0]), $($newBounds[0][1])], [$($newBounds[1][0]), $($newBounds[1][1])]]"
 
-$sample = $t.spawns[0].position
+$sample = $spawns[0].position
 $norm = Get-Normalized $sample.x $sample.z $newBounds $rotation $transform
 Write-Output ("Sample spawn normalized: ({0:F3}, {1:F3})" -f $norm[0], $norm[1])
 

@@ -367,3 +367,6 @@ build-log.txt
 
 # VSCode
 .vscode/
+
+# Local publish / test-build output
+dist/

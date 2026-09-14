@@ -3,6 +3,8 @@ $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configDir = Join-Path (Split-Path $toolsDir -Parent) 'Config'
 $toolsDataDir = Join-Path $toolsDir 'data'
 
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
+
 function Update-JsonMapSection {
     param(
         [string]$FilePath,
@@ -29,45 +31,21 @@ function Update-JsonMapSection {
     $root | ConvertTo-Json -Depth 20 | Set-Content $FilePath -Encoding utf8
 }
 
-$query = @'
-{
-  maps {
-    name
-    normalizedName
-    tarkovDataId
-    description
-    enemies
-    raidDuration
-    spawns { zoneName sides categories position { x y z } }
-    extracts {
-      id
-      name
-      faction
-      position { x y z }
-      switches { name }
-      transferItem { item { name } count }
-    }
-    transits {
-      id
-      description
-      position { x y z }
-      conditions
-    }
-  }
+$terminal = Get-TarkovJsonMap -NormalizedName 'terminal'
+if ($null -eq $terminal) {
+    throw 'Terminal map not found in json.tarkov.dev maps dump.'
 }
-'@
 
-$body = @{ query = $query } | ConvertTo-Json
-$terminal = ((Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body).data.maps |
-    Where-Object { $_.normalizedName -eq 'terminal' } | Select-Object -First 1)
+$spawnCount = @($terminal.spawns).Count
+$extractCount = @($terminal.extracts).Count
+$transitCount = @($terminal.transits).Count
+Write-Output "API spawns: $spawnCount"
+Write-Output "API extracts: $extractCount"
+Write-Output "API transits: $transitCount"
 
-Write-Output "API spawns: $($terminal.spawns.Count)"
-Write-Output "API extracts: $($terminal.extracts.Count)"
-Write-Output "API transits: $($terminal.transits.Count)"
-
-# Convert spawns to local format
 $spawns = @()
-foreach ($s in $terminal.spawns) {
+foreach ($s in @($terminal.spawns)) {
+    if ($null -eq $s -or $null -eq $s.position) { continue }
     $spawns += [ordered]@{
         zoneName   = $s.zoneName
         sides      = @($s.sides)
@@ -80,57 +58,79 @@ foreach ($s in $terminal.spawns) {
     }
 }
 
-# Convert extracts
 $extracts = @()
-foreach ($e in $terminal.extracts) {
+foreach ($e in @($terminal.extracts)) {
+    if ($null -eq $e) { continue }
     $entry = [ordered]@{
         id       = $e.id
         name     = $e.name
         faction  = $e.faction
         switches = @()
-        position = [ordered]@{
+        position = $null
+    }
+    if ($e.position) {
+        $entry.position = [ordered]@{
             x = [double]$e.position.x
             y = [double]$e.position.y
             z = [double]$e.position.z
         }
     }
-    if ($e.switches) {
-        foreach ($sw in $e.switches) {
-            $entry.switches += [ordered]@{ name = $sw.name }
-        }
+    foreach ($sw in @($e.switches)) {
+        if ($null -eq $sw) { continue }
+        $entry.switches += [ordered]@{ name = $sw.name }
     }
-    if ($e.transferItem) {
+    if ($e.transferItem -and $e.transferItem.item) {
         $entry.transferItem = [ordered]@{
             item  = [ordered]@{ name = $e.transferItem.item.name }
             count = $e.transferItem.count
         }
-    } else {
+    }
+    else {
         $entry.transferItem = $null
     }
     $extracts += $entry
 }
 
-# Convert transits
 $transits = @()
 foreach ($t in @($terminal.transits)) {
-    if (-not $t) { continue }
-    $transits += [ordered]@{
-        id          = $t.id
-        description = $t.description
-        conditions  = $t.conditions
-        position    = [ordered]@{
+    if ($null -eq $t) { continue }
+    $pos = $null
+    if ($t.position) {
+        $pos = [ordered]@{
             x = [double]$t.position.x
             y = [double]$t.position.y
             z = [double]$t.position.z
         }
     }
+    $transits += [ordered]@{
+        id          = $t.id
+        description = $t.description
+        conditions  = $t.conditions
+        position    = $pos
+    }
 }
 
-Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_spawns_raw.json') -MapName 'Terminal' -PropertyName 'spawns' -Data $spawns
-Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_extracts_raw.json') -MapName 'Terminal' -PropertyName 'extracts' -Data $extracts
-Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_transits_raw.json') -MapName 'Terminal' -PropertyName 'transits' -Data $transits
+if ($spawns.Count -gt 0) {
+    Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_spawns_raw.json') -MapName 'Terminal' -PropertyName 'spawns' -Data $spawns
+}
+else {
+    Write-Warning 'json.tarkov.dev has no Terminal spawns; leaving Config/tarkov_spawns_raw.json unchanged.'
+}
 
-# Save metadata for maps.json update
+if ($extracts.Count -gt 0) {
+    Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_extracts_raw.json') -MapName 'Terminal' -PropertyName 'extracts' -Data $extracts
+}
+else {
+    Write-Warning 'json.tarkov.dev has no Terminal extracts; leaving Config/tarkov_extracts_raw.json unchanged.'
+}
+
+if ($transits.Count -gt 0) {
+    Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_transits_raw.json') -MapName 'Terminal' -PropertyName 'transits' -Data $transits
+}
+else {
+    Write-Warning 'json.tarkov.dev has no Terminal transits; leaving Config/tarkov_transits_raw.json unchanged.'
+}
+
 [ordered]@{
     tdevId       = $terminal.tarkovDataId
     description  = $terminal.description
@@ -138,4 +138,4 @@ Update-JsonMapSection -FilePath (Join-Path $configDir 'tarkov_transits_raw.json'
     raidDuration = $terminal.raidDuration
 } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $toolsDataDir 'terminal_map_meta.json') -Encoding utf8
 
-Write-Output "Updated Terminal spawns/extracts/transits in config JSON files."
+Write-Output 'Updated Terminal map data from json.tarkov.dev.'

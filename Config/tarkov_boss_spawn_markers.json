@@ -1,636 +1,1026 @@
 ﻿{
-    "groundzero":  [
-                       {
-                           "bossName":  "Cultist Priest",
-                           "normalizedName":  "cultist-priest",
-                           "locationName":  "Any scav spawn",
-                           "zoneName":  "ZoneSandbox",
-                           "spawnChance":  1
-                       }
-                   ],
-    "woods":  [
-                  {
-                      "bossName":  "Shturman",
-                      "normalizedName":  "shturman",
-                      "locationName":  "Lumber Mill",
-                      "zoneName":  "ZoneWoodCutter",
-                      "spawnChance":  1
-                  },
-                  {
-                      "bossName":  "Knight",
-                      "normalizedName":  "knight",
-                      "locationName":  "Northwest Scav Bunker",
-                      "zoneName":  "ZoneScavBase2",
-                      "spawnChance":  1
-                  },
-                  {
-                      "bossName":  "Cultist Priest",
-                      "normalizedName":  "cultist-priest",
-                      "locationName":  "West of Lumber Mill",
-                      "zoneName":  "ZoneMiniHouse",
-                      "spawnChance":  0.5
-                  },
-                  {
-                      "bossName":  "Cultist Priest",
-                      "normalizedName":  "cultist-priest",
-                      "locationName":  "Rundown Village",
-                      "zoneName":  "ZoneBrokenVill",
-                      "spawnChance":  0.5
-                  }
-              ],
-    "streetsoftarkov":  [
-                            {
-                                "bossName":  "Kaban",
-                                "normalizedName":  "kaban",
-                                "locationName":  "Car Dealership",
-                                "zoneName":  "ZoneCarShowroom",
-                                "spawnChance":  1
-                            },
-                            {
-                                "bossName":  "Kollontay",
-                                "normalizedName":  "kollontay",
-                                "locationName":  "Klimov Shopping Mall",
-                                "zoneName":  "ZoneClimova",
-                                "spawnChance":  0.5
-                            },
-                            {
-                                "bossName":  "Kollontay",
-                                "normalizedName":  "kollontay",
-                                "locationName":  "Ministry of the Interior Academy",
-                                "zoneName":  "ZoneMvd",
-                                "spawnChance":  0.5
-                            }
-                        ],
     "customs":  [
+                    {
+                        "bossName":  "Knight",
+                        "normalizedName":  "knight",
+                        "locationName":  "Stronghold",
+                        "zoneName":  "ZoneScavBase",
+                        "spawnChance":  1,
+                        "x":  99.53001,
+                        "y":  1.38884091,
+                        "z":  -66.62
+                    },
+                    {
+                        "bossName":  "Cultist Priest",
+                        "normalizedName":  "cultist-priest",
+                        "locationName":  "Stronghold",
+                        "zoneName":  "ZoneScavBase",
+                        "spawnChance":  1,
+                        "x":  99.53001,
+                        "y":  1.38884091,
+                        "z":  -66.62
+                    },
+                    {
+                        "bossName":  "Reshala",
+                        "normalizedName":  "reshala",
+                        "locationName":  "Stronghold",
+                        "zoneName":  "ZoneScavBase",
+                        "spawnChance":  0.33,
+                        "x":  99.53001,
+                        "y":  1.38884091,
+                        "z":  -66.62
+                    },
                     {
                         "bossName":  "Reshala",
                         "normalizedName":  "reshala",
                         "locationName":  "Dorms",
                         "zoneName":  "ZoneDormitory",
-                        "spawnChance":  0.33
+                        "spawnChance":  0.33,
+                        "x":  181.1043,
+                        "y":  -0.1127597,
+                        "z":  178.053787
                     },
                     {
                         "bossName":  "Reshala",
                         "normalizedName":  "reshala",
                         "locationName":  "New Gas Station",
                         "zoneName":  "ZoneGasStation",
-                        "spawnChance":  0.33
-                    },
-                    {
-                        "bossName":  "Reshala",
-                        "normalizedName":  "reshala",
-                        "locationName":  "Stronghold",
-                        "zoneName":  "ZoneScavBase",
-                        "spawnChance":  0.33
-                    },
-                    {
-                        "bossName":  "Knight",
-                        "normalizedName":  "knight",
-                        "locationName":  "Stronghold",
-                        "zoneName":  "ZoneScavBase",
-                        "spawnChance":  1
-                    },
+                        "spawnChance":  0.33,
+                        "x":  208.2033,
+                        "y":  1.78224027,
+                        "z":  -116.860214
+                    }
+                ],
+    "factory":  [
                     {
                         "bossName":  "Cultist Priest",
                         "normalizedName":  "cultist-priest",
-                        "locationName":  "Stronghold",
-                        "zoneName":  "ZoneScavBase",
-                        "spawnChance":  1
+                        "locationName":  "Any scav spawn",
+                        "zoneName":  "BotZone",
+                        "spawnChance":  1,
+                        "x":  -6.77,
+                        "y":  0.17,
+                        "z":  10.01
+                    },
+                    {
+                        "bossName":  "Tagilla",
+                        "normalizedName":  "tagilla",
+                        "locationName":  "Any scav spawn",
+                        "zoneName":  "BotZone",
+                        "spawnChance":  1,
+                        "x":  -6.77,
+                        "y":  0.17,
+                        "z":  10.01
+                    },
+                    {
+                        "bossName":  "Tagilla",
+                        "normalizedName":  "tagilla",
+                        "locationName":  "Any scav spawn",
+                        "zoneName":  "BotZone",
+                        "spawnChance":  1,
+                        "x":  -6.77,
+                        "y":  0.17,
+                        "z":  10.01
                     }
                 ],
-    "thelab":  [
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "First Floor",
-                       "zoneName":  "BotZoneFloor1",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Basement",
-                       "zoneName":  "BotZoneBasement",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Basement",
-                       "zoneName":  "BotZoneBasement",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Basement",
-                       "zoneName":  "BotZoneBasement",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "First Floor",
-                       "zoneName":  "BotZoneFloor1",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "First Floor",
-                       "zoneName":  "BotZoneFloor1",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "First Floor",
-                       "zoneName":  "BotZoneFloor1",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "First Floor",
-                       "zoneName":  "BotZoneFloor1",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Second Floor",
-                       "zoneName":  "BotZoneFloor2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Parking Gate",
-                       "zoneName":  "BotZoneGate2",
-                       "spawnChance":  1
-                   },
-                   {
-                       "bossName":  "Raider",
-                       "normalizedName":  "raider",
-                       "locationName":  "Hangar Gate",
-                       "zoneName":  "BotZoneGate1",
-                       "spawnChance":  1
-                   }
-               ],
-    "lighthouse":  [
+    "groundzero":  [
                        {
-                           "bossName":  "Zryachiy",
-                           "normalizedName":  "zryachiy",
-                           "locationName":  "Island",
-                           "zoneName":  "Zone_Island",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Knight",
-                           "normalizedName":  "knight",
-                           "locationName":  "Water Treatment North Building",
-                           "zoneName":  "Zone_TreatmentContainers",
-                           "spawnChance":  0.5
-                       },
-                       {
-                           "bossName":  "Knight",
-                           "normalizedName":  "knight",
-                           "locationName":  "Chalet",
-                           "zoneName":  "Zone_Chalet",
-                           "spawnChance":  0.5
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment Southwest Gate",
-                           "zoneName":  "Zone_Blockpost",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment North Building",
-                           "zoneName":  "Zone_RoofContainers",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment East Building",
-                           "zoneName":  "Zone_TreatmentRocks",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment West Building",
-                           "zoneName":  "Zone_TreatmentBeach",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment East Building Roof",
-                           "zoneName":  "Zone_RoofRocks",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment West Building Roof",
-                           "zoneName":  "Zone_RoofBeach",
-                           "spawnChance":  1
-                       },
-                       {
-                           "bossName":  "Rogue",
-                           "normalizedName":  "rogue",
-                           "locationName":  "Water Treatment Helicopter",
-                           "zoneName":  "Zone_Hellicopter",
-                           "spawnChance":  1
+                           "bossName":  "Cultist Priest",
+                           "normalizedName":  "cultist-priest",
+                           "locationName":  "Any scav spawn",
+                           "zoneName":  "ZoneSandbox",
+                           "spawnChance":  1,
+                           "x":  109.396805,
+                           "y":  22.688652,
+                           "z":  239.435822
                        }
                    ],
-    "terminal":  [
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1PortAmbush1",
-                         "zoneName":  "Zone1BD1PortAmbush1",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1PortAmbush1",
-                         "zoneName":  "Zone1BD1PortAmbush1",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BDGateAmbush13",
-                         "zoneName":  "Zone1BDGateAmbush13",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "1VSRFSnipeRoofPort2",
-                         "zoneName":  "Zone1VSRFSnipeRoofPort2",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "1VSRF1Spawn3",
-                         "zoneName":  "Zone1VSRF1Spawn3",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "1VSRF1Spawn3",
-                         "zoneName":  "Zone1VSRF1Spawn3",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "1VSRFStoreAmbush10",
-                         "zoneName":  "Zone1VSRFStoreAmbush10",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "1VSRFStoreAmbush10",
-                         "zoneName":  "Zone1VSRFStoreAmbush10",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1HangarAmbush11",
-                         "zoneName":  "Zone1BD1HangarAmbush11",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1HangarAmbush11",
-                         "zoneName":  "Zone1BD1HangarAmbush11",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1HangarAmbush11",
-                         "zoneName":  "Zone1BD1HangarAmbush11",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "2VSRFPassMiddle15",
-                         "zoneName":  "Zone2VSRFPassMiddle15",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDWarehouse18",
-                         "zoneName":  "Zone2BDWarehouse18",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDWarehouse19",
-                         "zoneName":  "Zone2BDWarehouse19",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "2VSRFColumns22",
-                         "zoneName":  "Zone2VSRFColumns22",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDColumns23",
-                         "zoneName":  "Zone2BDColumns23",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "2VSRFContainers24",
-                         "zoneName":  "Zone2VSRFContainers24",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDPort28",
-                         "zoneName":  "Zone2BDPort28",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDPort30",
-                         "zoneName":  "Zone2BDPort30",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDPort31",
-                         "zoneName":  "Zone2BDPort31",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "2BDPort32",
-                         "zoneName":  "Zone2BDPort32",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "AF",
-                         "normalizedName":  "af",
-                         "locationName":  "2VSRFExit33",
-                         "zoneName":  "Zone2VSRFExit33",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Black Div.",
-                         "normalizedName":  "black-div",
-                         "locationName":  "1BD1HangarBD11",
-                         "zoneName":  "Zone1BD1HangarBD11",
-                         "spawnChance":  1
-                     },
-                     {
-                         "bossName":  "Reshala",
-                         "normalizedName":  "reshala",
-                         "locationName":  "2ScavPort29",
-                         "zoneName":  "Zone2ScavPort29",
-                         "spawnChance":  1
-                     }
-                 ],
+    "icebreaker":  [
+                       {
+                           "bossName":  "The Wedge",
+                           "normalizedName":  "the-wedge",
+                           "locationName":  "RoomsFour",
+                           "zoneName":  "BotZoneRoomsFour",
+                           "spawnChance":  1,
+                           "x":  -3.65,
+                           "y":  26.47125,
+                           "z":  37.14
+                       },
+                       {
+                           "bossName":  "The Wedge",
+                           "normalizedName":  "the-wedge",
+                           "locationName":  "RoomsFour",
+                           "zoneName":  "BotZoneRoomsFour",
+                           "spawnChance":  1,
+                           "x":  -3.65,
+                           "y":  26.47125,
+                           "z":  37.14
+                       },
+                       {
+                           "bossName":  "The Wedge",
+                           "normalizedName":  "the-wedge",
+                           "locationName":  "RoomsFour",
+                           "zoneName":  "BotZoneRoomsFour",
+                           "spawnChance":  1,
+                           "x":  -3.65,
+                           "y":  26.47125,
+                           "z":  37.14
+                       },
+                       {
+                           "bossName":  "The Wedge",
+                           "normalizedName":  "the-wedge",
+                           "locationName":  "RoomsFour",
+                           "zoneName":  "BotZoneRoomsFour",
+                           "spawnChance":  1,
+                           "x":  -3.65,
+                           "y":  26.47125,
+                           "z":  37.14
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Outside_t3",
+                           "zoneName":  "BotZoneOutside_t3",
+                           "spawnChance":  1,
+                           "x":  -10.5583611,
+                           "y":  21.071249,
+                           "z":  16.8478012
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Inside_t4",
+                           "zoneName":  "BotZoneInside_t4",
+                           "spawnChance":  1,
+                           "x":  6.27,
+                           "y":  34.57125,
+                           "z":  29.836
+                       },
+                       {
+                           "bossName":  "Rogue",
+                           "normalizedName":  "rogue",
+                           "locationName":  "KorrDown1",
+                           "zoneName":  "BotZoneKorrDown1",
+                           "spawnChance":  1,
+                           "x":  -11.697,
+                           "y":  15.7212505,
+                           "z":  44.672
+                       },
+                       {
+                           "bossName":  "Rogue",
+                           "normalizedName":  "rogue",
+                           "locationName":  "Room_Eng",
+                           "zoneName":  "BotZoneRoom_Eng",
+                           "spawnChance":  1,
+                           "x":  0.912,
+                           "y":  18.384306,
+                           "z":  29.047
+                       },
+                       {
+                           "bossName":  "Rogue",
+                           "normalizedName":  "rogue",
+                           "locationName":  "Front2",
+                           "zoneName":  "BotZoneFront2",
+                           "spawnChance":  1,
+                           "x":  -2.525,
+                           "y":  18.3712482,
+                           "z":  39.045
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "SternTop",
+                           "zoneName":  "BotZoneSternTop",
+                           "spawnChance":  1,
+                           "x":  11.63,
+                           "y":  21.0908031,
+                           "z":  -65.58
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "SternTop",
+                           "zoneName":  "BotZoneSternTop",
+                           "spawnChance":  1,
+                           "x":  11.63,
+                           "y":  21.0908031,
+                           "z":  -65.58
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "SternTop",
+                           "zoneName":  "BotZoneSternTop",
+                           "spawnChance":  1,
+                           "x":  11.63,
+                           "y":  21.0908031,
+                           "z":  -65.58
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "EngineHide",
+                           "zoneName":  "BotZoneEngineHide",
+                           "spawnChance":  1,
+                           "x":  2.168,
+                           "y":  15.7212505,
+                           "z":  -22.101
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Boss",
+                           "normalizedName":  "black-div-boss",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "SternTop",
+                           "zoneName":  "BotZoneSternTop",
+                           "spawnChance":  1,
+                           "x":  11.63,
+                           "y":  21.0908031,
+                           "z":  -65.58
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       },
+                       {
+                           "bossName":  "Black Div. Raider",
+                           "normalizedName":  "black-div-raider",
+                           "locationName":  "Stern",
+                           "zoneName":  "BotZoneStern",
+                           "spawnChance":  1,
+                           "x":  -0.14,
+                           "y":  16.1496181,
+                           "z":  -75.23
+                       }
+                   ],
     "interchange":  [
-                        {
-                            "bossName":  "Killa",
-                            "normalizedName":  "killa",
-                            "locationName":  "Center",
-                            "zoneName":  "ZoneCenterBot",
-                            "spawnChance":  0.4
-                        },
-                        {
-                            "bossName":  "Killa",
-                            "normalizedName":  "killa",
-                            "locationName":  "OLI",
-                            "zoneName":  "ZoneOLI",
-                            "spawnChance":  0.2
-                        },
-                        {
-                            "bossName":  "Killa",
-                            "normalizedName":  "killa",
-                            "locationName":  "IDEA",
-                            "zoneName":  "ZoneIDEA",
-                            "spawnChance":  0.2
-                        },
                         {
                             "bossName":  "Killa",
                             "normalizedName":  "killa",
                             "locationName":  "Goshan",
                             "zoneName":  "ZoneGoshan",
-                            "spawnChance":  0.2
+                            "spawnChance":  0.2,
+                            "x":  252.91,
+                            "y":  21.4840012,
+                            "z":  15.58
                         },
                         {
                             "bossName":  "Tagilla",
                             "normalizedName":  "tagilla",
                             "locationName":  "Tagilla",
                             "zoneName":  "ZoneTagilla",
-                            "spawnChance":  1
+                            "spawnChance":  1,
+                            "x":  -65.831,
+                            "y":  27.27,
+                            "z":  -275.619
+                        },
+                        {
+                            "bossName":  "Killa",
+                            "normalizedName":  "killa",
+                            "locationName":  "IDEA",
+                            "zoneName":  "ZoneIDEA",
+                            "spawnChance":  0.2,
+                            "x":  59.081,
+                            "y":  36.63006,
+                            "z":  -90.855
+                        },
+                        {
+                            "bossName":  "Killa",
+                            "normalizedName":  "killa",
+                            "locationName":  "Center",
+                            "zoneName":  "ZoneCenterBot",
+                            "spawnChance":  0.4,
+                            "x":  -35.6460037,
+                            "y":  27.3000011,
+                            "z":  -194.558
+                        },
+                        {
+                            "bossName":  "Killa",
+                            "normalizedName":  "killa",
+                            "locationName":  "OLI",
+                            "zoneName":  "ZoneOLI",
+                            "spawnChance":  0.2,
+                            "x":  -26.4800034,
+                            "y":  21.5170021,
+                            "z":  81.67999
                         }
                     ],
-    "labyrinth":  [
-
-                  ],
+    "lighthouse":  [
+                       {
+                           "bossName":  "exUsecFree",
+                           "normalizedName":  "exusecfree",
+                           "locationName":  "Chalet",
+                           "zoneName":  "Zone_Chalet",
+                           "spawnChance":  1,
+                           "x":  -62.0599976,
+                           "y":  19.84999,
+                           "z":  -134.26001
+                       },
+                       {
+                           "bossName":  "exUsecFree",
+                           "normalizedName":  "exusecfree",
+                           "locationName":  "Chalet",
+                           "zoneName":  "Zone_Chalet",
+                           "spawnChance":  1,
+                           "x":  -62.0599976,
+                           "y":  19.84999,
+                           "z":  -134.26001
+                       },
+                       {
+                           "bossName":  "Glukhar",
+                           "normalizedName":  "glukhar",
+                           "locationName":  "Water Treatment",
+                           "zoneName":  "Zone_Hellicopter",
+                           "spawnChance":  1,
+                           "x":  14.1499939,
+                           "y":  4.627964,
+                           "z":  -452.15
+                       },
+                       {
+                           "bossName":  "exUsecFree",
+                           "normalizedName":  "exusecfree",
+                           "locationName":  "Rocks",
+                           "zoneName":  "Zone_Rocks",
+                           "spawnChance":  1,
+                           "x":  -69.18002,
+                           "y":  26.7799988,
+                           "z":  112.903
+                       },
+                       {
+                           "bossName":  "Knight",
+                           "normalizedName":  "knight",
+                           "locationName":  "Chalet",
+                           "zoneName":  "Zone_Chalet",
+                           "spawnChance":  1,
+                           "x":  -62.0599976,
+                           "y":  19.84999,
+                           "z":  -134.26001
+                       },
+                       {
+                           "bossName":  "Zryachiy",
+                           "normalizedName":  "zryachiy",
+                           "locationName":  "Island",
+                           "zoneName":  "Zone_Island",
+                           "spawnChance":  1,
+                           "x":  329.55,
+                           "y":  1.78791809,
+                           "z":  505.63
+                       },
+                       {
+                           "bossName":  "exUsecFree",
+                           "normalizedName":  "exusecfree",
+                           "locationName":  "Chalet",
+                           "zoneName":  "Zone_Chalet",
+                           "spawnChance":  1,
+                           "x":  -62.0599976,
+                           "y":  19.84999,
+                           "z":  -134.26001
+                       },
+                       {
+                           "bossName":  "exUsecFree",
+                           "normalizedName":  "exusecfree",
+                           "locationName":  "Chalet",
+                           "zoneName":  "Zone_Chalet",
+                           "spawnChance":  1,
+                           "x":  -62.0599976,
+                           "y":  19.84999,
+                           "z":  -134.26001
+                       }
+                   ],
+    "reserve":  [
+                    {
+                        "bossName":  "Raider",
+                        "normalizedName":  "raider",
+                        "locationName":  "Command Bunker",
+                        "zoneName":  "ZoneSubCommand",
+                        "spawnChance":  1,
+                        "x":  -104.219,
+                        "y":  -14.4960022,
+                        "z":  33.834
+                    },
+                    {
+                        "bossName":  "Raider",
+                        "normalizedName":  "raider",
+                        "locationName":  "Command Bunker",
+                        "zoneName":  "ZoneSubCommand",
+                        "spawnChance":  1,
+                        "x":  -104.219,
+                        "y":  -14.4960022,
+                        "z":  33.834
+                    },
+                    {
+                        "bossName":  "Raider",
+                        "normalizedName":  "raider",
+                        "locationName":  "K Buildings",
+                        "zoneName":  "ZoneRailStrorage",
+                        "spawnChance":  1,
+                        "x":  226.305008,
+                        "y":  -6.829998,
+                        "z":  31.4150085
+                    },
+                    {
+                        "bossName":  "Raider",
+                        "normalizedName":  "raider",
+                        "locationName":  "K Buildings",
+                        "zoneName":  "ZoneRailStrorage",
+                        "spawnChance":  1,
+                        "x":  226.305008,
+                        "y":  -6.829998,
+                        "z":  31.4150085
+                    }
+                ],
     "shoreline":  [
-                      {
-                          "bossName":  "Sanitar",
-                          "normalizedName":  "sanitar",
-                          "locationName":  "Pier",
-                          "zoneName":  "ZonePort",
-                          "spawnChance":  0.5
-                      },
-                      {
-                          "bossName":  "Sanitar",
-                          "normalizedName":  "sanitar",
-                          "locationName":  "Greenhouses",
-                          "zoneName":  "ZoneGreenHouses",
-                          "spawnChance":  0.5
-                      },
-                      {
-                          "bossName":  "Knight",
-                          "normalizedName":  "knight",
-                          "locationName":  "Weather Station",
-                          "zoneName":  "ZoneMeteoStation",
-                          "spawnChance":  1
-                      },
-                      {
-                          "bossName":  "Cultist Priest",
-                          "normalizedName":  "cultist-priest",
-                          "locationName":  "West Wing",
-                          "zoneName":  "ZoneSanatorium1",
-                          "spawnChance":  0.2
-                      },
                       {
                           "bossName":  "Cultist Priest",
                           "normalizedName":  "cultist-priest",
                           "locationName":  "East Wing",
                           "zoneName":  "ZoneSanatorium2",
-                          "spawnChance":  0.2
+                          "spawnChance":  0.2,
+                          "x":  -168.695984,
+                          "y":  -3.70999813,
+                          "z":  -83.987
                       },
                       {
                           "bossName":  "Cultist Priest",
                           "normalizedName":  "cultist-priest",
                           "locationName":  "Northeast of Sunken Village",
                           "zoneName":  "ZoneForestSpawn",
-                          "spawnChance":  0.6
-                      },
-                      {
-                          "bossName":  "AF",
-                          "normalizedName":  "af",
-                          "locationName":  "GateTowerRight",
-                          "zoneName":  "ZoneGateTowerRight",
-                          "spawnChance":  1
+                          "spawnChance":  0.6,
+                          "x":  162.59,
+                          "y":  -34.72,
+                          "z":  -296.289978
                       },
                       {
                           "bossName":  "AF",
                           "normalizedName":  "af",
                           "locationName":  "GateTowerLeft",
                           "zoneName":  "ZoneGateTowerLeft",
-                          "spawnChance":  1
+                          "spawnChance":  1,
+                          "x":  -960.73,
+                          "y":  -60.11157,
+                          "z":  389.47998
+                      },
+                      {
+                          "bossName":  "Cultist Priest",
+                          "normalizedName":  "cultist-priest",
+                          "locationName":  "West Wing",
+                          "zoneName":  "ZoneSanatorium1",
+                          "spawnChance":  0.2,
+                          "x":  -326.03,
+                          "y":  -5.14499569,
+                          "z":  -105.619995
+                      },
+                      {
+                          "bossName":  "Sanitar",
+                          "normalizedName":  "sanitar",
+                          "locationName":  "Pier",
+                          "zoneName":  "ZonePort",
+                          "spawnChance":  0.5,
+                          "x":  -323.5232,
+                          "y":  -62.0306168,
+                          "z":  498.4858
+                      },
+                      {
+                          "bossName":  "Sanitar",
+                          "normalizedName":  "sanitar",
+                          "locationName":  "Greenhouses",
+                          "zoneName":  "ZoneGreenHouses",
+                          "spawnChance":  0.5,
+                          "x":  128.37,
+                          "y":  -48.475,
+                          "z":  76.78
+                      },
+                      {
+                          "bossName":  "Knight",
+                          "normalizedName":  "knight",
+                          "locationName":  "Weather Station",
+                          "zoneName":  "ZoneMeteoStation",
+                          "spawnChance":  1,
+                          "x":  -527.13,
+                          "y":  -27.0361423,
+                          "z":  287.35
                       }
                   ],
-    "reserve":  [
-                    {
-                        "bossName":  "Glukhar",
-                        "normalizedName":  "glukhar",
-                        "locationName":  "K Buildings",
-                        "zoneName":  "ZoneRailStrorage",
-                        "spawnChance":  0.25
-                    },
-                    {
-                        "bossName":  "Glukhar",
-                        "normalizedName":  "glukhar",
-                        "locationName":  "White Knight",
-                        "zoneName":  "ZonePTOR2",
-                        "spawnChance":  0.25
-                    },
-                    {
-                        "bossName":  "Glukhar",
-                        "normalizedName":  "glukhar",
-                        "locationName":  "Barracks",
-                        "zoneName":  "ZoneBarrack",
-                        "spawnChance":  0.25
-                    },
-                    {
-                        "bossName":  "Glukhar",
-                        "normalizedName":  "glukhar",
-                        "locationName":  "Storage Bunker",
-                        "zoneName":  "ZoneSubStorage",
-                        "spawnChance":  0.25
-                    },
-                    {
-                        "bossName":  "Raider",
-                        "normalizedName":  "raider",
-                        "locationName":  "K Buildings",
-                        "zoneName":  "ZoneRailStrorage",
-                        "spawnChance":  1
-                    },
-                    {
-                        "bossName":  "Raider",
-                        "normalizedName":  "raider",
-                        "locationName":  "K Buildings",
-                        "zoneName":  "ZoneRailStrorage",
-                        "spawnChance":  1
-                    },
-                    {
-                        "bossName":  "Raider",
-                        "normalizedName":  "raider",
-                        "locationName":  "Command Bunker",
-                        "zoneName":  "ZoneSubCommand",
-                        "spawnChance":  1
-                    },
-                    {
-                        "bossName":  "Raider",
-                        "normalizedName":  "raider",
-                        "locationName":  "Command Bunker",
-                        "zoneName":  "ZoneSubCommand",
-                        "spawnChance":  1
-                    }
-                ],
-    "factory":  [
-                    {
-                        "bossName":  "Tagilla",
-                        "normalizedName":  "tagilla",
-                        "locationName":  "Any scav spawn",
-                        "zoneName":  "BotZone",
-                        "spawnChance":  1
-                    },
-                    {
-                        "bossName":  "Tagilla",
-                        "normalizedName":  "tagilla",
-                        "locationName":  "Any scav spawn",
-                        "zoneName":  "BotZone",
-                        "spawnChance":  1
-                    },
-                    {
-                        "bossName":  "Cultist Priest",
-                        "normalizedName":  "cultist-priest",
-                        "locationName":  "Any scav spawn",
-                        "zoneName":  "BotZone",
-                        "spawnChance":  1
-                    }
-                ]
+    "streetsoftarkov":  [
+                            {
+                                "bossName":  "Kollontay",
+                                "normalizedName":  "kollontay",
+                                "locationName":  "Ministry of the Interior Academy",
+                                "zoneName":  "ZoneMvd",
+                                "spawnChance":  0.5,
+                                "x":  -254.2,
+                                "y":  2.98599625,
+                                "z":  149.62999
+                            },
+                            {
+                                "bossName":  "Kollontay",
+                                "normalizedName":  "kollontay",
+                                "locationName":  "Klimov Shopping Mall",
+                                "zoneName":  "ZoneClimova",
+                                "spawnChance":  0.5,
+                                "x":  -155.72,
+                                "y":  0.664130151,
+                                "z":  -58.1299973
+                            },
+                            {
+                                "bossName":  "Kaban",
+                                "normalizedName":  "kaban",
+                                "locationName":  "Car Dealership",
+                                "zoneName":  "ZoneCarShowroom",
+                                "spawnChance":  1,
+                                "x":  85.81,
+                                "y":  5.38299561,
+                                "z":  348.52
+                            }
+                        ],
+    "terminal":  [
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "2BDWarehouse18",
+                         "zoneName":  "Zone2BDWarehouse18",
+                         "spawnChance":  1,
+                         "x":  189.5,
+                         "y":  -60.40134,
+                         "z":  -41.3199463
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "2VSRFColumns22",
+                         "zoneName":  "Zone2VSRFColumns22",
+                         "spawnChance":  1,
+                         "x":  175.52002,
+                         "y":  -61.53134,
+                         "z":  237.56
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "1BD1HangarAmbush11",
+                         "zoneName":  "Zone1BD1HangarAmbush11",
+                         "spawnChance":  1,
+                         "x":  290.680054,
+                         "y":  -60.28134,
+                         "z":  -298.149963
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "2VSRFPassMiddle15",
+                         "zoneName":  "Zone2VSRFPassMiddle15",
+                         "spawnChance":  1,
+                         "x":  -18.7698975,
+                         "y":  -60.2513428,
+                         "z":  -113.259949
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "2BDPort28",
+                         "zoneName":  "Zone2BDPort28",
+                         "spawnChance":  1,
+                         "x":  -73.276,
+                         "y":  -60.24734,
+                         "z":  190.63
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "2BDPort32",
+                         "zoneName":  "Zone2BDPort32",
+                         "spawnChance":  1,
+                         "x":  -372.021,
+                         "y":  -60.373,
+                         "z":  328.85907
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "2VSRFExit33",
+                         "zoneName":  "Zone2VSRFExit33",
+                         "spawnChance":  1,
+                         "x":  -289.436035,
+                         "y":  -61.36434,
+                         "z":  58.88501
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "2BDPort30",
+                         "zoneName":  "Zone2BDPort30",
+                         "spawnChance":  1,
+                         "x":  -85.96802,
+                         "y":  -60.421,
+                         "z":  396.534
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "2BDPort31",
+                         "zoneName":  "Zone2BDPort31",
+                         "spawnChance":  1,
+                         "x":  -181.161011,
+                         "y":  -60.4330025,
+                         "z":  293.239
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "1VSRFSnipeRoofPort2",
+                         "zoneName":  "Zone1VSRFSnipeRoofPort2",
+                         "spawnChance":  1,
+                         "x":  9.070068,
+                         "y":  -51.8413429,
+                         "z":  -212.47998
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "1VSRF1Spawn3",
+                         "zoneName":  "Zone1VSRF1Spawn3",
+                         "spawnChance":  1,
+                         "x":  133.810059,
+                         "y":  -60.46134,
+                         "z":  -392.249969
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "1BD1PortAmbush1",
+                         "zoneName":  "Zone1BD1PortAmbush1",
+                         "spawnChance":  1,
+                         "x":  21.77002,
+                         "y":  -60.42134,
+                         "z":  -353.929962
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "1BD1PortAmbush1",
+                         "zoneName":  "Zone1BD1PortAmbush1",
+                         "spawnChance":  1,
+                         "x":  21.77002,
+                         "y":  -60.42134,
+                         "z":  -353.929962
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "1VSRF1Spawn3",
+                         "zoneName":  "Zone1VSRF1Spawn3",
+                         "spawnChance":  1,
+                         "x":  133.810059,
+                         "y":  -60.46134,
+                         "z":  -392.249969
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "1BD1HangarAmbush11",
+                         "zoneName":  "Zone1BD1HangarAmbush11",
+                         "spawnChance":  1,
+                         "x":  290.680054,
+                         "y":  -60.28134,
+                         "z":  -298.149963
+                     },
+                     {
+                         "bossName":  "Black Div.",
+                         "normalizedName":  "black-div",
+                         "locationName":  "1BD1HangarAmbush11",
+                         "zoneName":  "Zone1BD1HangarAmbush11",
+                         "spawnChance":  1,
+                         "x":  290.680054,
+                         "y":  -60.28134,
+                         "z":  -298.149963
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "1VSRFStoreAmbush10",
+                         "zoneName":  "Zone1VSRFStoreAmbush10",
+                         "spawnChance":  1,
+                         "x":  168.710083,
+                         "y":  -60.27134,
+                         "z":  -213.269989
+                     },
+                     {
+                         "bossName":  "AF",
+                         "normalizedName":  "af",
+                         "locationName":  "1VSRFStoreAmbush10",
+                         "zoneName":  "Zone1VSRFStoreAmbush10",
+                         "spawnChance":  1,
+                         "x":  168.710083,
+                         "y":  -60.27134,
+                         "z":  -213.269989
+                     }
+                 ],
+    "thelab":  [
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "First Floor",
+                       "zoneName":  "BotZoneFloor1",
+                       "spawnChance":  1,
+                       "x":  -213.124,
+                       "y":  0.05000019,
+                       "z":  -378.754974
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "First Floor",
+                       "zoneName":  "BotZoneFloor1",
+                       "spawnChance":  1,
+                       "x":  -213.124,
+                       "y":  0.05000019,
+                       "z":  -378.754974
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "First Floor",
+                       "zoneName":  "BotZoneFloor1",
+                       "spawnChance":  1,
+                       "x":  -213.124,
+                       "y":  0.05000019,
+                       "z":  -378.754974
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Basement",
+                       "zoneName":  "BotZoneBasement",
+                       "spawnChance":  1,
+                       "x":  -262.57,
+                       "y":  0.05000019,
+                       "z":  -330.62
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "First Floor",
+                       "zoneName":  "BotZoneFloor1",
+                       "spawnChance":  1,
+                       "x":  -213.124,
+                       "y":  0.05000019,
+                       "z":  -378.754974
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Basement",
+                       "zoneName":  "BotZoneBasement",
+                       "spawnChance":  1,
+                       "x":  -262.57,
+                       "y":  0.05000019,
+                       "z":  -330.62
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "First Floor",
+                       "zoneName":  "BotZoneFloor1",
+                       "spawnChance":  1,
+                       "x":  -213.124,
+                       "y":  0.05000019,
+                       "z":  -378.754974
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Second Floor",
+                       "zoneName":  "BotZoneFloor2",
+                       "spawnChance":  1,
+                       "x":  -116.089,
+                       "y":  0.0602139123,
+                       "z":  -339.412
+                   },
+                   {
+                       "bossName":  "Raider",
+                       "normalizedName":  "raider",
+                       "locationName":  "Basement",
+                       "zoneName":  "BotZoneBasement",
+                       "spawnChance":  1,
+                       "x":  -262.57,
+                       "y":  0.05000019,
+                       "z":  -330.62
+                   }
+               ],
+    "woods":  [
+                  {
+                      "bossName":  "Cultist Priest",
+                      "normalizedName":  "cultist-priest",
+                      "locationName":  "West of Lumber Mill",
+                      "zoneName":  "ZoneMiniHouse",
+                      "spawnChance":  0.5,
+                      "x":  242.89,
+                      "y":  1.48214149,
+                      "z":  -164.249985
+                  },
+                  {
+                      "bossName":  "Cultist Priest",
+                      "normalizedName":  "cultist-priest",
+                      "locationName":  "Rundown Village",
+                      "zoneName":  "ZoneBrokenVill",
+                      "spawnChance":  0.5,
+                      "x":  -55.9500122,
+                      "y":  7.617488,
+                      "z":  -759.37
+                  },
+                  {
+                      "bossName":  "Shturman",
+                      "normalizedName":  "shturman",
+                      "locationName":  "Lumber Mill",
+                      "zoneName":  "ZoneWoodCutter",
+                      "spawnChance":  1,
+                      "x":  102.62,
+                      "y":  7.21544075,
+                      "z":  -152.19
+                  },
+                  {
+                      "bossName":  "Knight",
+                      "normalizedName":  "knight",
+                      "locationName":  "Northwest Scav Bunker",
+                      "zoneName":  "ZoneScavBase2",
+                      "spawnChance":  1,
+                      "x":  178.999985,
+                      "y":  17.2640247,
+                      "z":  -771.420044
+                  }
+              ]
 }

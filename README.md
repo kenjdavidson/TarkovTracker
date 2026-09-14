@@ -1,6 +1,6 @@
 # SayserTarkovTracker
 
-A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.7.8**).
+A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.8.0**).
 
 Built with **WPF** (.NET 10) and **WebView2**.
 
@@ -10,7 +10,7 @@ Built with **WPF** (.NET 10) and **WebView2**.
 
 | Main window (Factory) | Settings |
 |-----------------------|----------|
-| ![Main window — map, MARKERS panel, SETTINGS in top bar](docs/screenshots/main-window.png) | ![Settings — screenshot folder, resolution, overlay opacity, About v2.7.8](docs/screenshots/settings.png) |
+| ![Main window — map, MARKERS panel, SETTINGS in top bar](docs/screenshots/main-window.png) | ![Settings — screenshot folder, resolution, overlay opacity, About](docs/screenshots/settings.png) |
 
 | Custom pins | Raid exfil highlights |
 |-------------|------------------------|
@@ -91,7 +91,7 @@ Open **SETTINGS** from the top bar (replaces the old screenshot-folder buttons o
 | **Overlay follow player** | When enabled, each new screenshot recenters the overlay on your position without changing zoom |
 | **Map actions** | **Clear raid exfil highlights** for the current map |
 | **Screenshot maintenance** | **Delete all screenshots** in the configured folder (with confirmation) |
-| **About** | App name and version (**2.7.8**), **Check for updates** (downloads and installs from GitHub Releases) |
+| **About** | App name and version (**2.8.0**), **Check for updates** (downloads and installs from GitHub Releases) |
 
 User preferences are stored in **`settings.json`** next to the executable (not in `%AppData%`). This includes screenshot folder, game resolution, overlay options, last selected map, custom pins per map, and the **Save marker selection** flag. Marker toggle states are saved only when that option is enabled in the **MARKERS** panel.
 
@@ -207,7 +207,7 @@ We rely heavily on the tarkov.dev project and community data:
 |----------------------|---------|
 | **SVG map graphics** | Interactive map backgrounds ([tarkov-dev-svg-maps](https://github.com/the-hideout/tarkov-dev-svg-maps)) |
 | **Map metadata & coordinates** | Bounds, transforms, floor/layer definitions |
-| **Game data API** | Extracts, spawns, transits, hazards, switches, labels, quests, boss spawns |
+| **Game data API** (`json.tarkov.dev`) | Extracts, spawns, transits, hazards, switches, labels, quests, boss spawns |
 | **Interactive marker icons** | Extract, spawn, quest, hazard, switch, transit, boss, cultist, and BTR icons (`Maps/interactive/`, from [tarkov-dev](https://github.com/the-hideout/tarkov-dev)) |
 | **Item icons** | Quest item marker images via `assets.tarkov.dev` |
 
@@ -221,19 +221,15 @@ Thank you to the [tarkov.dev](https://tarkov.dev) team and contributors for main
 
 ## Updating map data
 
-To refresh quest markers, boss/cultist spawns, or map levels from the latest tarkov.dev API:
+To refresh quest markers, extracts, boss/cultist spawns, or map levels from `json.tarkov.dev`:
 
 ```powershell
 cd tools
 .\build_quest_markers_from_api.ps1
+.\build_extracts_from_api.ps1
+.\fetch-boss-data.ps1
 .\build_boss_spawn_markers.ps1
 .\build_map_levels.ps1
-```
-
-To refresh boss spawn metadata and raw spawn points (including Night Factory cultist data merged onto Factory):
-
-```powershell
-powershell -ExecutionPolicy Bypass -File Tools\fetch-boss-data.ps1
 ```
 
 See [`tools/README.md`](tools/README.md) for the full list of scripts.

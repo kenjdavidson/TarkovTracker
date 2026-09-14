@@ -1,17 +1,23 @@
 $ErrorActionPreference = 'Stop'
-$query = '{ maps { name bosses { boss { name } spawnLocations { spawnKey name chance } } } }'
-$body = @{ query = $query } | ConvertTo-Json
-$response = Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body
-if ($response.errors) { $response.errors | ConvertTo-Json; exit 1 }
-foreach ($map in $response.data.maps) {
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
+
+$maps = @(Get-TarkovJsonMaps)
+foreach ($map in $maps) {
     $total = 0
-    foreach ($b in $map.bosses) { if ($b.spawnLocations) { $total += $b.spawnLocations.Count } }
+    foreach ($b in @($map.bosses)) {
+        if ($null -eq $b) { continue }
+        $total += @($b.spawnLocations).Count
+    }
     if ($total -gt 0) {
         Write-Output "$($map.name): $total boss spawn locations"
-        foreach ($b in $map.bosses) {
-            if ($b.spawnLocations -and $b.spawnLocations.Count -gt 0) {
-                Write-Output "  $($b.boss.name): $($b.spawnLocations.Count)"
-                foreach ($loc in $b.spawnLocations) {
+        foreach ($b in @($map.bosses)) {
+            if ($null -eq $b) { continue }
+            $locCount = @($b.spawnLocations).Count
+            if ($locCount -gt 0) {
+                Write-Output "  $($b.boss.name): $locCount"
+                foreach ($loc in @($b.spawnLocations)) {
+                    if ($null -eq $loc) { continue }
                     Write-Output "    $($loc.spawnKey) / $($loc.name) ($($loc.chance)%)"
                 }
             }

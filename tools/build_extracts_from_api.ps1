@@ -3,33 +3,7 @@ $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configDir = Join-Path (Split-Path $toolsDir -Parent) 'Config'
 $outputPath = Join-Path $configDir 'tarkov_extracts_raw.json'
 
-$query = @'
-query {
-  maps {
-    name
-    extracts {
-      id
-      name
-      faction
-      switches { id name }
-      transferItem {
-        item { name }
-        count
-        quantity
-      }
-      position { x y z }
-    }
-  }
-}
-'@
-
-$body = @{ query = $query } | ConvertTo-Json
-$response = Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body
-
-if ($response.errors) {
-    $response.errors | ConvertTo-Json -Depth 5
-    exit 1
-}
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
 function Build-TransferItemObject($transferItem) {
     if ($null -eq $transferItem -or $null -eq $transferItem.item) {
@@ -73,8 +47,11 @@ function Build-RequirementsList($extract, $switches) {
         }
     }
 
+    if ($requirements.Count -eq 0) { return @() }
     return [string[]]$requirements.ToArray()
 }
+
+$maps = @(Get-TarkovJsonMaps)
 
 $payload = [ordered]@{
     data = [ordered]@{
@@ -82,17 +59,16 @@ $payload = [ordered]@{
     }
 }
 
-foreach ($map in $response.data.maps) {
+foreach ($map in $maps) {
     $extracts = @()
-    foreach ($extract in $map.extracts) {
+    foreach ($extract in @($map.extracts)) {
+        if ($null -eq $extract) { continue }
         $switches = @()
-        if ($extract.switches) {
-            foreach ($sw in $extract.switches) {
-                if ($null -eq $sw) { continue }
-                $switches += [ordered]@{
-                    id   = [string]$sw.id
-                    name = [string]$sw.name
-                }
+        foreach ($sw in @($extract.switches)) {
+            if ($null -eq $sw) { continue }
+            $switches += [ordered]@{
+                id   = [string]$sw.id
+                name = [string]$sw.name
             }
         }
 
@@ -105,13 +81,11 @@ foreach ($map in $response.data.maps) {
             }
         }
 
-        $reqArray = [string[]](Build-RequirementsList $extract $switches)
-
         $extracts += [ordered]@{
             id           = [string]$extract.id
             name         = [string]$extract.name
             faction      = [string]$extract.faction
-            requirements = @($reqArray)
+            requirements = @(Build-RequirementsList $extract $switches)
             switches     = $switches
             transferItem = Build-TransferItemObject $extract.transferItem
             position     = $pos

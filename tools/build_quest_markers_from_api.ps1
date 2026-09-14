@@ -1,146 +1,55 @@
 $ErrorActionPreference = 'Stop'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configDir = Join-Path (Split-Path $toolsDir -Parent) 'Config'
-$toolsDataDir = Join-Path $toolsDir 'data'
 $outputPath = Join-Path $configDir 'tarkov_quest_markers.json'
 
-function Normalize-MapName([string]$name) {
-    return -join ($name.ToLowerInvariant().ToCharArray() | Where-Object { [char]::IsLetterOrDigit($_) })
-}
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
-function Resolve-QuestMapKey([string]$normalizedName, [string]$displayName) {
-    switch ($normalizedName) {
-        'factory' { return 'factory' }
-        'night-factory' { return 'factory' }
-        'the-lab' { return 'thelab' }
-        'streets-of-tarkov' { return 'streetsoftarkov' }
-        'ground-zero' { return 'groundzero' }
-        'ground-zero-21+' { return 'groundzero' }
-        'the-labyrinth' { return 'thelabyrinth' }
-        default {
-            $k = Normalize-MapName ($normalizedName -replace '-', '')
-            if ($k -eq 'lab') { return 'thelab' }
-            return $k
-        }
-    }
-}
-
-$appMapKeys = @(
-    'factory', 'customs', 'woods', 'shoreline', 'interchange', 'thelab',
-    'reserve', 'lighthouse', 'streetsoftarkov', 'groundzero', 'terminal', 'thelabyrinth'
-)
-
-$query = @'
-query {
-  tasks {
-    name
-    normalizedName
-    trader { name }
-    minPlayerLevel
-    objectives {
-      __typename
-      type
-      description
-      optional
-      ... on TaskObjectiveBasic { zones { map { normalizedName name } position { x y z } } }
-      ... on TaskObjectiveItem {
-        item { name shortName iconLink }
-        zones { map { normalizedName name } position { x y z } }
-      }
-      ... on TaskObjectiveQuestItem {
-        questItem { name shortName iconLink }
-        zones { map { normalizedName name } position { x y z } }
-        possibleLocations { map { normalizedName name } positions { x y z } }
-      }
-      ... on TaskObjectiveMark {
-        markerItem { name shortName iconLink }
-        zones { map { normalizedName name } position { x y z } }
-      }
-      ... on TaskObjectiveUseItem { zones { map { normalizedName name } position { x y z } } }
-    }
-  }
-}
-'@
-
-$body = @{ query = $query } | ConvertTo-Json
-$response = Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body
-if ($response.errors) {
-    $response.errors | ConvertTo-Json -Depth 5
-    exit 1
-}
+$appMapKeys = Get-TarkovAppQuestMapKeys
+$catalog = Get-TarkovLiveTaskCatalog
+$tasks = @($catalog.Tasks)
 
 $byMap = @{}
+$skippedMaps = @{}
+$trackableTasks = @{}
+$placedTasks = @{}
 
-foreach ($task in $response.data.tasks) {
-    $trader = if ($task.trader.name) { [string]$task.trader.name } else { '' }
-    $level = [int]$task.minPlayerLevel
+foreach ($task in $tasks) {
     $questSlug = if ($task.normalizedName) { [string]$task.normalizedName } else { '' }
 
-    foreach ($obj in $task.objectives) {
-        $objectiveType = [string]$obj.__typename
-        $category = if ($objectiveType -match 'Item|QuestItem') { 'item' } else { 'objective' }
+    foreach ($obj in @($task.objectives)) {
+        $locations = @($obj.zones)
+        if ($locations.Count -eq 0) { continue }
 
-        $itemName = ''
-        $itemShort = ''
-        $itemIcon = ''
-        if ($obj.item) {
-            $itemName = [string]$obj.item.name
-            $itemShort = [string]$obj.item.shortName
-            $itemIcon = [string]$obj.item.iconLink
-        }
-        elseif ($obj.questItem) {
-            $itemName = [string]$obj.questItem.name
-            $itemShort = [string]$obj.questItem.shortName
-            $itemIcon = [string]$obj.questItem.iconLink
-        }
-        elseif ($obj.markerItem) {
-            $itemName = [string]$obj.markerItem.name
-            $itemShort = [string]$obj.markerItem.shortName
-            $itemIcon = [string]$obj.markerItem.iconLink
-        }
-
-        $locations = New-Object System.Collections.Generic.List[object]
-        if ($obj.zones) {
-            foreach ($z in $obj.zones) { $locations.Add($z) }
-        }
-        if ($obj.possibleLocations) {
-            foreach ($pl in $obj.possibleLocations) {
-                if (-not $pl.positions) { continue }
-                foreach ($pos in $pl.positions) {
-                    $locations.Add([pscustomobject]@{
-                        map      = $pl.map
-                        position = $pos
-                    })
-                }
-            }
-        }
+        $trackableTasks[$task.id] = $task.name
 
         foreach ($loc in $locations) {
-            if ($null -eq $loc.position) { continue }
-            $x = [double]$loc.position.x
-            $z = [double]$loc.position.z
-            if ($x -eq 0 -and $z -eq 0) { continue }
+            $mapKey = Resolve-TarkovQuestMapKey ([string]$loc.normalizedName)
+            if ($appMapKeys -notcontains $mapKey) {
+                $skipLabel = [string]$loc.normalizedName
+                if (-not $skipLabel) { $skipLabel = [string]$loc.map }
+                if (-not $skippedMaps.ContainsKey($skipLabel)) { $skippedMaps[$skipLabel] = 0 }
+                $skippedMaps[$skipLabel]++
+                continue
+            }
 
-            $mapKey = Resolve-QuestMapKey $loc.map.normalizedName $loc.map.name
-            if ($appMapKeys -notcontains $mapKey) { continue }
-
-            $y = if ($null -ne $loc.position.y) { [double]$loc.position.y } else { 0.0 }
+            $placedTasks[$task.id] = $task.name
             $marker = [ordered]@{
                 quest          = $task.name
                 questSlug      = $questSlug
-                objectiveType  = $objectiveType
-                category       = $category
-                iconType       = $category
+                objectiveType  = [string]$obj.objectiveType
+                category       = [string]$obj.category
+                iconType       = [string]$obj.category
                 description    = [string]$obj.description
-                questItem      = $itemName
-                itemShortName  = $itemShort
-                itemIconLink   = $itemIcon
-                trader         = $trader
-                minPlayerLevel = $level
+                questItem      = if ($obj.itemName) { [string]$obj.itemName } else { '' }
+                itemShortName  = if ($obj.itemShortName) { [string]$obj.itemShortName } else { '' }
+                itemIconLink   = if ($obj.itemIconLink) { [string]$obj.itemIconLink } else { '' }
+                trader         = if ($task.trader) { [string]$task.trader } else { '' }
+                minPlayerLevel = [int]$task.minPlayerLevel
                 optional       = [bool]$obj.optional
-                x              = $x
-                y              = $y
-                z              = $z
+                x              = [double]$loc.x
+                y              = [double]$loc.y
+                z              = [double]$loc.z
             }
 
             if (-not $byMap.ContainsKey($mapKey)) {
@@ -158,8 +67,39 @@ foreach ($key in ($byMap.Keys | Sort-Object)) {
 
 $sorted | ConvertTo-Json -Depth 6 | Set-Content $outputPath -Encoding utf8
 
-Write-Output 'Quest markers built from tarkov.dev API:'
-foreach ($key in ($sorted.Keys | Sort-Object)) {
-    Write-Output ("  {0}: {1}" -f $key, $sorted[$key].Count)
+Write-Output ''
+Write-Output 'Quest markers built from json.tarkov.dev:'
+$total = 0
+foreach ($key in ($appMapKeys | Sort-Object)) {
+    $count = 0
+    if ($sorted.Contains($key)) { $count = @($sorted[$key]).Count }
+    $total += $count
+    Write-Output ('  {0}: {1}' -f $key, $count)
 }
-Write-Output ("Total: {0}" -f (($sorted.Values | ForEach-Object { $_.Count }) | Measure-Object -Sum).Sum)
+Write-Output ('Total markers: {0}' -f $total)
+Write-Output ('Live tasks: {0}' -f $tasks.Count)
+Write-Output ('Tasks with map locations: {0}' -f $trackableTasks.Count)
+Write-Output ('Tasks placed on app maps: {0}' -f $placedTasks.Count)
+
+$unplaced = @($trackableTasks.GetEnumerator() | Where-Object { -not $placedTasks.ContainsKey($_.Key) } | Sort-Object Value)
+if ($unplaced.Count -gt 0) {
+    Write-Output ''
+    Write-Output ('Trackable tasks with no marker on an app map ({0}):' -f $unplaced.Count)
+    foreach ($entry in $unplaced) { Write-Output ('  {0}' -f $entry.Value) }
+}
+
+if ($skippedMaps.Count -gt 0) {
+    Write-Output ''
+    Write-Output 'Positions on maps the app does not show:'
+    foreach ($name in ($skippedMaps.Keys | Sort-Object)) {
+        Write-Output ('  {0}: {1}' -f $name, $skippedMaps[$name])
+    }
+}
+
+if ($catalog.UnknownMaps.Count -gt 0) {
+    Write-Output ''
+    Write-Output 'Unknown map ids in the API dump:'
+    foreach ($name in ($catalog.UnknownMaps.Keys | Sort-Object)) {
+        Write-Output ('  {0}: {1}' -f $name, $catalog.UnknownMaps[$name])
+    }
+}

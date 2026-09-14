@@ -1,93 +1,28 @@
-# Refreshes boss metadata and spawn data from tarkov.dev (matches tarkov.dev boss markers).
-# Usage: powershell -ExecutionPolicy Bypass -File Tools\fetch-boss-data.ps1
+# Refreshes raw spawn points from json.tarkov.dev (Night Factory cultists merge onto Factory).
+# Usage: powershell -ExecutionPolicy Bypass -File tools\fetch-boss-data.ps1
+# Then run build_boss_spawn_markers.ps1 to join boss zones to these coordinates.
 
 $ErrorActionPreference = 'Stop'
-$configDir = Join-Path $PSScriptRoot '..\Config'
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$configDir = Join-Path $toolsDir '..\Config'
 
-$query = @'
-{
-  maps {
-    normalizedName
-    name
-    bosses {
-      boss { name normalizedName }
-      spawnLocations { name spawnKey chance }
-    }
-    spawns {
-      zoneName
-      sides
-      categories
-      position { x y z }
-    }
-  }
-}
-'@
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
-$body = @{ query = $query } | ConvertTo-Json
-$response = Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body
-
-# Map API normalizedName -> app config key (maps.json keys / NormalizeMapName(locale.en))
-$apiToAppKey = @{
-    'factory'            = 'factory'
-    'night-factory'      = 'factory'
-    'customs'            = 'customs'
-    'woods'              = 'woods'
-    'lighthouse'         = 'lighthouse'
-    'shoreline'          = 'shoreline'
-    'reserve'            = 'reserve'
-    'interchange'        = 'interchange'
-    'streets-of-tarkov'  = 'streetsoftarkov'
-    'the-lab'            = 'thelab'
-    'ground-zero-21'     = 'groundzero'
-    'ground-zero'        = 'groundzero'
-    'terminal'           = 'terminal'
-    'the-labyrinth'      = 'labyrinth'
-}
-
-$bossMarkers = @{}
+$maps = @(Get-TarkovJsonMaps)
+$appMaps = @(Get-TarkovAppBossMapKeys)
 $spawnsByAppKey = @{}
 $bossSpawnCounts = @{}
 
-$appDisplayNames = @{
-    'factory'           = 'Factory'
-    'customs'           = 'Customs'
-    'woods'             = 'Woods'
-    'lighthouse'        = 'Lighthouse'
-    'shoreline'         = 'Shoreline'
-    'reserve'           = 'Reserve'
-    'interchange'       = 'Interchange'
-    'streetsoftarkov'   = 'Streets of Tarkov'
-    'thelab'            = 'The Lab'
-    'groundzero'        = 'Ground Zero 21+'
-    'terminal'          = 'Terminal'
-    'labyrinth'         = 'The Labyrinth'
-}
-
-foreach ($map in $response.data.maps) {
-    $appKey = $apiToAppKey[$map.normalizedName]
-    if (-not $appKey) { continue }
-
-    if (-not $bossMarkers.ContainsKey($appKey)) {
-        $bossMarkers[$appKey] = @()
-    }
-
-    foreach ($boss in $map.bosses) {
-        foreach ($loc in $boss.spawnLocations) {
-            $bossMarkers[$appKey] += [PSCustomObject]@{
-                bossName       = $boss.boss.name
-                normalizedName = $boss.boss.normalizedName
-                locationName   = $loc.name
-                zoneName       = $loc.spawnKey
-                spawnChance    = [double]$loc.chance
-            }
-        }
-    }
+foreach ($map in $maps) {
+    $appKey = Resolve-TarkovAppMapKey $map.normalizedName
+    if ($appMaps -notcontains $appKey) { continue }
 
     if (-not $spawnsByAppKey.ContainsKey($appKey)) {
         $spawnsByAppKey[$appKey] = @()
     }
 
-    foreach ($spawn in $map.spawns) {
+    foreach ($spawn in @($map.spawns)) {
+        if ($null -eq $spawn -or $null -eq $spawn.position) { continue }
         $spawnsByAppKey[$appKey] += [PSCustomObject]@{
             zoneName   = $spawn.zoneName
             sides      = @($spawn.sides)
@@ -129,21 +64,18 @@ foreach ($appKey in ($spawnsByAppKey.Keys | Sort-Object)) {
         $deduped += $spawn
     }
 
-    $displayName = if ($appDisplayNames.ContainsKey($appKey)) { $appDisplayNames[$appKey] } else { $appKey }
     $spawnsRoot.data.maps += [PSCustomObject]@{
-        name   = $displayName
+        name   = Get-TarkovAppMapDisplayName $appKey
         spawns = $deduped
     }
 }
 
-# Keep cultist-priest on factory (Night Factory only in-game, shown on our single Factory map).
-
-$bossMarkers | ConvertTo-Json -Depth 6 | Set-Content -Path (Join-Path $configDir 'tarkov_boss_spawn_markers.json') -Encoding UTF8
 $spawnsRoot | ConvertTo-Json -Depth 8 | Set-Content -Path (Join-Path $configDir 'tarkov_spawns_raw.json') -Encoding UTF8
 
-Write-Output 'Updated Config/tarkov_boss_spawn_markers.json and Config/tarkov_spawns_raw.json'
+Write-Output 'Updated Config/tarkov_spawns_raw.json'
 Write-Output ''
 Write-Output 'Boss spawn points per map (should match tarkov.dev boss toggle):'
 $bossSpawnCounts.GetEnumerator() | Sort-Object Name | ForEach-Object {
     Write-Output ('  {0}: {1}' -f $_.Name, $_.Value)
 }
+Write-Output 'Run build_boss_spawn_markers.ps1 next to refresh Config/tarkov_boss_spawn_markers.json.'
