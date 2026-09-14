@@ -1130,6 +1130,16 @@ namespace TarkovTracker
             string pinsJson = JsonSerializer.Serialize(_customPins);
             await _overlayWindow.SetCustomPinsAsync(pinsJson);
         }
+        
+        private async System.Threading.Tasks.Task SyncQuestFiltersToOverlayAsync()
+        {
+            if (_overlayWindow == null)
+                return;
+
+            WebQuestFilterPayload questFilter = BuildQuestFilterPayload();
+            string questFilterJson =JsonSerializer.Serialize(questFilter);            
+            await _overlayWindow.ApplyQuestFiltersAsync(questFilterJson);
+        }
 
         private bool CurrentMapSupportsBtr()
         {
@@ -2762,6 +2772,7 @@ namespace TarkovTracker
 
             await SyncOverlayLayersAndFiltersAsync();
             await SyncCustomPinsToOverlayAsync();
+            await SyncQuestFiltersToOverlayAsync();
         }
 
         private static string ResolveQuestSlug(QuestMarker questMarker)
@@ -2844,7 +2855,7 @@ namespace TarkovTracker
             }
 
             await _overlayWindow.ApplyMarkerFiltersAsync(JsonSerializer.Serialize(BuildMarkerFilterState()));
-            await ApplyRaidExfilHighlightsAsync();
+            await ApplyRaidExfilHighlightsAsync();            
         }
 
         protected override void OnClosed(EventArgs e)
