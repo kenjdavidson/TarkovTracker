@@ -1698,70 +1698,104 @@ namespace TarkovTracker
         private void PopulateQuestFilterOptions()
         {
             if (QuestNameFilterComboBox == null || QuestTraderFilterComboBox == null)
-                return;
+                    return;
 
-            _suppressQuestFilterRefresh = true;
+                _suppressQuestFilterRefresh = true;
 
-            string? currentQuest = QuestNameFilterComboBox.Text;
-            string? currentTrader = (QuestTraderFilterComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
-
-            QuestNameFilterComboBox.Items.Clear();
-            QuestTraderFilterComboBox.Items.Clear();
-
-            QuestTraderFilterComboBox.Items.Add(new ComboBoxItem { Content = "All", Tag = "all" });
-
-            if (string.IsNullOrWhiteSpace(_currentMapDisplayName))
-            {
-                QuestTraderFilterComboBox.SelectedIndex = 0;
-                _suppressQuestFilterRefresh = false;
-                return;
-            }
-
-            string normalizedName = MapDataService.NormalizeMapName(_currentMapDisplayName);
-
-            var questNames = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-            var traders = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            if (_mapData.QuestMarkersByMapName.TryGetValue(normalizedName, out List<QuestMarker>? questMarkers) &&
-                questMarkers != null)
-            {
-                foreach (QuestMarker questMarker in questMarkers)
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(questMarker.Quest))
-                        questNames.Add(questMarker.Quest.Trim());
+                    // 1. Preserve currently checked quest names (reading from model objects or CheckBox items)
+                    HashSet<string> currentQuests = QuestNameFilterComboBox.Items
+                        .OfType<QuestFilterItem>()
+                        .Where(static item => item.IsSelected && !string.IsNullOrWhiteSpace(item.Name))
+                        .Select(static item => item.Name)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                    if (!string.IsNullOrWhiteSpace(questMarker.Trader))
-                        traders.Add(questMarker.Trader.Trim());
+                    // Fallback: If Items contains strings or CheckBoxes directly
+                    if (currentQuests.Count == 0)
+                    {
+                        currentQuests = QuestNameFilterComboBox.Items
+                            .OfType<CheckBox>()
+                            .Where(static cb => cb.IsChecked == true && cb.Content != null)
+                            .Select(static cb => cb.Content!.ToString()!)
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    }
+
+                    string? currentTrader = (QuestTraderFilterComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+
+                    QuestNameFilterComboBox.Items.Clear();
+                    QuestTraderFilterComboBox.Items.Clear();
+
+                    QuestTraderFilterComboBox.Items.Add(new ComboBoxItem { Content = "All", Tag = "all" });
+
+                    if (string.IsNullOrWhiteSpace(_currentMapDisplayName))
+                    {
+                        QuestTraderFilterComboBox.SelectedIndex = 0;
+                        return;
+                    }
+
+                    string normalizedName = MapDataService.NormalizeMapName(_currentMapDisplayName);
+
+                    var questNames = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var traders = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var traderQuests = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                    if (_mapData.QuestMarkersByMapName.TryGetValue(normalizedName, out List<QuestMarker>? questMarkers) &&
+                        questMarkers != null)
+                    {
+                        foreach (QuestMarker questMarker in questMarkers)
+                        {
+                            if (!string.IsNullOrWhiteSpace(questMarker.Quest))
+                            {
+                                questNames.Add(questMarker.Quest.Trim());
+                                traderQuests[questMarker.Quest.Trim()] = questMarker.Trader?.Trim() ?? string.Empty;
+                            }                                
+
+                            if (!string.IsNullOrWhiteSpace(questMarker.Trader))
+                                traders.Add( questMarker.Trader.Trim());
+                        }
+                    }
+
+                    // 2. Populate Quest ComboBox using QuestFilterItem models (maintains IsSelected state)
+                    foreach (string questName in questNames)
+                    {
+                        bool wasSelected = currentQuests.Contains(questName);
+                        
+                        // Add as item model for DataTemplate binding
+                        QuestNameFilterComboBox.Items.Add(new QuestFilterItem 
+                        { 
+                            Name = questName, 
+                            Trader = traderQuests.TryGetValue(questName, out string? value) ? value : string.Empty,
+                            IsSelected = wasSelected 
+                        });
+                    }
+
+                    // 3. Populate Trader ComboBox
+                    foreach (string trader in traders)
+                        QuestTraderFilterComboBox.Items.Add(new ComboBoxItem { Content = trader, Tag = trader });
+
+                    // 4. Restore selected trader
+                    bool traderRestored = false;
+                    if (!string.IsNullOrWhiteSpace(currentTrader))
+                    {
+                        foreach (ComboBoxItem item in QuestTraderFilterComboBox.Items.OfType<ComboBoxItem>())
+                        {
+                            if (!string.Equals(item.Content?.ToString(), currentTrader, StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            QuestTraderFilterComboBox.SelectedItem = item;
+                            traderRestored = true;
+                            break;
+                        }
+                    }
+
+                    if (!traderRestored)
+                        QuestTraderFilterComboBox.SelectedIndex = 0;
                 }
-            }
-
-            foreach (string questName in questNames)
-                QuestNameFilterComboBox.Items.Add(questName);
-
-            foreach (string trader in traders)
-                QuestTraderFilterComboBox.Items.Add(new ComboBoxItem { Content = trader, Tag = trader });
-
-            if (!string.IsNullOrWhiteSpace(currentQuest))
-                QuestNameFilterComboBox.Text = currentQuest;
-
-            bool traderRestored = false;
-            if (!string.IsNullOrWhiteSpace(currentTrader))
-            {
-                foreach (ComboBoxItem item in QuestTraderFilterComboBox.Items.OfType<ComboBoxItem>())
+                finally
                 {
-                    if (!string.Equals(item.Content?.ToString(), currentTrader, StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    QuestTraderFilterComboBox.SelectedItem = item;
-                    traderRestored = true;
-                    break;
+                    _suppressQuestFilterRefresh = false;
                 }
-            }
-
-            if (!traderRestored)
-                QuestTraderFilterComboBox.SelectedIndex = 0;
-
-            _suppressQuestFilterRefresh = false;
         }
 
         private WebQuestFilterPayload BuildQuestFilterPayload()
@@ -1771,13 +1805,31 @@ namespace TarkovTracker
             if (QuestTraderFilterComboBox?.SelectedItem is ComboBoxItem traderItem)
             {
                 trader = traderItem.Tag?.ToString()
-                         ?? traderItem.Content?.ToString()
-                         ?? "all";
+                        ?? traderItem.Content?.ToString()
+                        ?? "all";
             }
 
+            // 1. Gather all checked quest names from the QuestFilterItem models
+            List<string> selectedQuests = QuestNameFilterComboBox?.Items
+                .OfType<QuestFilterItem>()
+                .Where(static item => item.IsSelected && !string.IsNullOrWhiteSpace(item.Name))
+                .Select(static item => item.Name)
+                .ToList() ?? new List<string>();
+
+            // Fallback: Check if items were added directly as CheckBox elements
+            if (selectedQuests.Count == 0 && QuestNameFilterComboBox != null)
+            {
+                selectedQuests = QuestNameFilterComboBox.Items
+                    .OfType<CheckBox>()
+                    .Where(static cb => cb.IsChecked == true && cb.Content != null)
+                    .Select(static cb => cb.Content!.ToString()!)
+                    .ToList();
+            }
+
+            // 2. Return the payload populated with QuestNames
             return new WebQuestFilterPayload
             {
-                QuestName = QuestNameFilterComboBox?.Text?.Trim() ?? "",
+                QuestNames = selectedQuests,
                 Trader = trader
             };
         }
@@ -1818,7 +1870,45 @@ namespace TarkovTracker
             if (_isInitializing || _suppressQuestFilterRefresh)
                 return;
 
+            // 1. Prevent WPF from trying to render a single item in the closed header
+            QuestNameFilterComboBox.SelectedItem = null;
+
+            // 2. Read the checked status directly from the ComboBox items
+            var selectedQuests = QuestNameFilterComboBox.Items
+                .OfType<QuestFilterItem>()
+                .Where(q => q.IsSelected)
+                .Select(q => q.Name)
+                .ToList();
+
+            // 3. Format the summary string
+            SetQuestFilterSummaryText(selectedQuests);
+
             await RunSafeAsync(ApplySearchAndQuestFiltersAsync, "Quest filters");
+        }
+
+        private void SetQuestFilterSummaryText(List<string> selectedQuests)
+        {
+            string summaryText;
+            if (selectedQuests.Count == 0)
+            {
+                summaryText = "All Quests";
+            }
+            else if (selectedQuests.Count == 1)
+            {
+                summaryText = selectedQuests[0];
+            }
+            else if (selectedQuests.Count <= 3)
+            {
+                summaryText = string.Join(", ", selectedQuests);
+            }
+            else
+            {
+                summaryText = $"{selectedQuests.Count} Quests Selected";
+            }
+
+            // 4. Store in Tag for the XAML TextBlock overlay        
+            QuestNameFilterComboBox.SelectedItem = null;
+            QuestNameFilterComboBox.Tag = summaryText;
         }
 
         private void AutoSelectFloorCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -1851,14 +1941,19 @@ namespace TarkovTracker
 
                 if (QuestNameFilterComboBox != null)
                 {
-                    QuestNameFilterComboBox.Text = string.Empty;
+                    foreach (var item in QuestNameFilterComboBox.Items.OfType<QuestFilterItem>())
+                    {
+                        item.IsSelected = false;
+                    }
                     QuestNameFilterComboBox.SelectedIndex = -1;
+                    SetQuestFilterSummaryText([]);
                 }
 
                 if (QuestTraderFilterComboBox != null)
                     QuestTraderFilterComboBox.SelectedIndex = 0;
 
                 _suppressQuestFilterRefresh = false;
+
                 await ApplySearchAndQuestFiltersAsync();
             }, "Clear search filters");
         }

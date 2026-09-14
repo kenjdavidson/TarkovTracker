@@ -13,6 +13,15 @@
     <Color x:Key="TacticalTerminalGreen">#57FF57</Color>
     <Color x:Key="TacticalTerminalRed">#FF6B4A</Color>
 
+    <!-- ComboBox Dark Tactical Theme Brushes -->
+    <SolidColorBrush x:Key="ComboBox.Static.Background" Color="#0C0C0C" />
+    <SolidColorBrush x:Key="ComboBox.Static.Border" Color="#382E18" />
+    <SolidColorBrush x:Key="ComboBox.MouseOver.Background" Color="#1A150B" />
+    <SolidColorBrush x:Key="ComboBox.MouseOver.Border" Color="#CFA348" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#0C0C0C" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#0C0C0C" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#CFA348" />
+
     <SolidColorBrush x:Key="TacticalBgDarkBrush" Color="{StaticResource TacticalBgDark}"/>
     <SolidColorBrush x:Key="TacticalBgPanelBrush" Color="{StaticResource TacticalBgPanel}"/>
     <SolidColorBrush x:Key="TacticalBgInsetBrush" Color="{StaticResource TacticalBgInset}"/>
@@ -161,6 +170,145 @@
 
     <!-- ComboBox -->
     <Style x:Key="TacticalComboBox" TargetType="ComboBox">
+        <Setter Property="FontFamily" Value="{StaticResource TacticalFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TacticalAmberBrightBrush}"/>
+        <Setter Property="Background" Value="{StaticResource TacticalBgInsetBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TacticalAmberBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Height" Value="32"/>
+    </Style>
+
+    <!-- Tactical CheckBox (Custom Drawn Box & Checkmark) -->
+    <Style x:Key="TacticalComboBoxCheckbox" TargetType="CheckBox">
+        <Setter Property="FontFamily" Value="{StaticResource TacticalFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TacticalAmberBrightBrush}"/>
+        <Setter Property="Background" Value="#0C0C0C"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TacticalAmberBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="6,0,0,0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- The Square Box -->
+                        <Border x:Name="checkBoxBorder"
+                                Grid.Column="0"
+                                Width="14"
+                                Height="14"
+                                Margin="0,0,6,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True">
+
+                            <!-- The Checkmark Path -->
+                            <Path x:Name="optionMark"
+                                Data="M 1,4.5 L 4,7.5 L 9,1.5"
+                                Stroke="{StaticResource TacticalAmberBrightBrush}"
+                                StrokeThickness="2"
+                                StrokeStartLineCap="Round"
+                                StrokeEndLineCap="Round"
+                                Visibility="Collapsed"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- The Text Label -->
+                        <ContentPresenter Grid.Column="1"
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        RecognizesAccessKey="True" />
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Show Gold Checkmark when Checked -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="optionMark" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{StaticResource TacticalAmberBrightBrush}" />
+                        </Trigger>
+
+                        <!-- Hover State -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{StaticResource TacticalAmberBrightBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Tactical ToggleButton Style for ComboBox Headers -->
+    <Style x:Key="TacticalToggleButton" TargetType="ToggleButton">
+        <Setter Property="Background" Value="#1A150B" />
+        <Setter Property="BorderBrush" Value="{StaticResource TacticalAmberBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2"
+                            Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Header Content / Text -->
+                            <ContentPresenter Grid.Column="0"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+
+                            <!-- Dropdown Arrow Indicator -->
+                            <Path Grid.Column="1"
+                                x:Name="Arrow"
+                                Data="M 0 0 L 4 4 L 8 0 Z"
+                                Fill="{StaticResource TacticalAmberBrush}"
+                                Margin="8,0,4,0"
+                                VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#2A2010" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource TacticalAmberBrightBrush}" />
+                            <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource TacticalAmberBrightBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource TacticalAmberBrightBrush}" />
+                            <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource TacticalAmberBrightBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Border" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>    
+
+    <!-- ListBox -->
+    <Style x:Key="TacticalListBox" TargetType="ListBox">
         <Setter Property="FontFamily" Value="{StaticResource TacticalFont}"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
