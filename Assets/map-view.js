@@ -656,11 +656,22 @@ function refreshMarkerLevelVisibility() {
         }
 
         let onLevel = true;
+        let matchedOverlay = false;
         for (const ext of extents) {
             if (y >= ext.minHeight && y < ext.maxHeight) {
                 onLevel = activeIds.has(ext.svgLayer);
+                matchedOverlay = true;
                 break;
             }
+        }
+
+        // Default/base floor: hide those labels when an overlay floor is in focus
+        // (Labs technical, Icebreaker decks, etc.) so first-floor names don't
+        // sit on basement tunnels.
+        if (!matchedOverlay) {
+            const overlayActive = activeIds.size > 0;
+            onLevel = mapLevelState.showBaseLayer !== false &&
+                !(mapLevelState.dimBase && overlayActive);
         }
 
         marker.classList.toggle('off-level', !onLevel);

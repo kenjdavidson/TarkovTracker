@@ -50,6 +50,8 @@
       "file": "Labs.svg",
       "coordinateRotation": 270,
       "transform": [0.575, 281.2, 0.575, 193.7],
+      "nativeZoom": 4,
+      "mapPixelSize": 2800,
       "bounds": [[-80, -477], [-287, -193]]
     }
   },

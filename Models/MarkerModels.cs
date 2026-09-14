@@ -314,6 +314,12 @@ public class MapLabel
     [JsonPropertyName("size")]
     [JsonConverter(typeof(FlexibleDoubleConverter))]
     public double Size { get; set; }
+
+    [JsonPropertyName("bottom")]
+    public double? Bottom { get; set; }
+
+    [JsonPropertyName("top")]
+    public double? Top { get; set; }
 }
 
 public class MapPosition

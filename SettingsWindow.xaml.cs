@@ -67,6 +67,8 @@ public partial class SettingsWindow : Window
         OverlayCenterOnPlayerCheckBox.IsChecked = _owner.OverlayCenterOnPlayer;
         _suppressOverlayCenterRefresh = false;
 
+        CheckForUpdatesOnStartupCheckBox.IsChecked = _owner.CheckForUpdatesOnStartup;
+
         AboutProductText.Text = AppInfo.ProductName;
         AboutVersionText.Text = $"Version {AppInfo.VersionLabel}";
         AboutDescriptionText.Text = AppInfo.AboutDescription;
@@ -176,6 +178,14 @@ public partial class SettingsWindow : Window
         _owner.ApplyOverlayCenterOnPlayer(OverlayCenterOnPlayerCheckBox.IsChecked == true);
     }
 
+    private void CheckForUpdatesOnStartupCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings)
+            return;
+
+        _owner.ApplyCheckForUpdatesOnStartup(CheckForUpdatesOnStartupCheckBox.IsChecked == true);
+    }
+
     private void ClearRaidExfilHighlights_Click(object sender, RoutedEventArgs e)
     {
         _owner.ClearRaidExfilHighlights();
@@ -273,50 +283,20 @@ public partial class SettingsWindow : Window
             if (install != MessageBoxResult.Yes)
                 return;
 
-            if (string.IsNullOrWhiteSpace(result.DownloadUrl))
-            {
-                MessageBoxResult openPage = MessageBox.Show(
-                    this,
-                    "No downloadable release file was found.\n\nOpen the GitHub release page instead?",
-                    "Update Download",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-                if (openPage == MessageBoxResult.Yes)
-                    AppUpdateService.OpenReleasePage(result.ReleaseUrl);
-                return;
-            }
-
             UpdateStatusText.Text = "DOWNLOADING…";
             var progress = new Progress<string>(status => UpdateStatusText.Text = status.ToUpperInvariant());
-            AppUpdateDownloadResult download = await AppUpdateService.DownloadAndInstallAsync(result, progress);
+            AppUpdateFlowOutcome outcome = await AppUpdateFlow.DownloadAndRestartAsync(this, result, progress);
 
-            if (!download.Succeeded)
+            if (outcome == AppUpdateFlowOutcome.Installing)
             {
-                UpdateStatusText.Text = download.Message;
-                UpdateStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalRedBrush");
-
-                MessageBoxResult openPage = MessageBox.Show(
-                    this,
-                    $"{download.Message}\n\nOpen the GitHub release page instead?",
-                    "Update Download Failed",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-                if (openPage == MessageBoxResult.Yes)
-                    AppUpdateService.OpenReleasePage(result.ReleaseUrl);
-                return;
+                UpdateStatusText.Text = "INSTALLING…";
+                UpdateStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
             }
-
-            UpdateStatusText.Text = "INSTALLING…";
-            UpdateStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
-            MessageBox.Show(
-                this,
-                download.Message,
-                "Update Ready",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-
-            if (download.RestartScheduled)
-                Application.Current.Shutdown();
+            else
+            {
+                UpdateStatusText.Text = "UPDATE NOT INSTALLED";
+                UpdateStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalRedBrush");
+            }
         }
         catch (Exception ex)
         {

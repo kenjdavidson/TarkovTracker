@@ -192,6 +192,20 @@
                     </StackPanel>
                 </Border>
 
+                <CheckBox x:Name="CheckForUpdatesOnStartupCheckBox"
+                          Style="{StaticResource TacticalSettingsCheckBox}"
+                          Content="Check for updates on startup"
+                          Margin="0,0,0,4"
+                          Checked="CheckForUpdatesOnStartupCheckBox_Changed"
+                          Unchecked="CheckForUpdatesOnStartupCheckBox_Changed"/>
+
+                <TextBlock Text="Prompts once per new release. You can skip a version and stay on the current build."
+                           Style="{StaticResource TacticalBody}"
+                           FontSize="10"
+                           Foreground="{StaticResource TacticalTextMutedBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,12"/>
+
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                     <Button x:Name="CheckForUpdatesButton"
                             Content="CHECK FOR UPDATES"

@@ -59,6 +59,7 @@ namespace TarkovTracker
         private bool _markerFiltersHaveSavedState;
         private bool _suppressMapSelectionPersistence;
         private bool _isInitializing;
+        private bool _startupUpdateCheckStarted;
         private string? _lastQuestTarkovDevUrl;
         private string? _lastQuestWikiUrl;
 
@@ -82,6 +83,8 @@ namespace TarkovTracker
             Math.Clamp(_userSettings.OverlayDefaultOpacityPercent, 20, 100);
 
         internal bool OverlayCenterOnPlayer => _userSettings.OverlayCenterOnPlayer;
+
+        internal bool CheckForUpdatesOnStartup => _userSettings.CheckForUpdatesOnStartup;
 
         public MainWindow()
         {
@@ -124,6 +127,67 @@ namespace TarkovTracker
             UpdateScreenshotMonitoringStatus();
 
             Closing += (_, _) => SaveUserSettings();
+            Loaded += MainWindow_Loaded;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_startupUpdateCheckStarted)
+                return;
+
+            _startupUpdateCheckStarted = true;
+
+            if (_userSettings.CheckForUpdatesOnStartup)
+                await RunStartupUpdateCheckAsync();
+        }
+
+        private async Task RunStartupUpdateCheckAsync()
+        {
+            AppUpdateCheckResult check;
+            try
+            {
+                check = await AppUpdateService.CheckForUpdatesAsync();
+            }
+            catch
+            {
+                // Startup checks stay silent; SETTINGS has the manual check for diagnostics.
+                return;
+            }
+
+            if (!check.Succeeded || !check.UpdateAvailable)
+                return;
+
+            if (string.Equals(
+                    check.LatestVersion,
+                    _userSettings.SkippedUpdateVersion,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            MessageBoxResult choice = MessageBox.Show(
+                this,
+                $"{check.Message}\n\n" +
+                "YES – download and install now (the app restarts)\n" +
+                "NO – skip this version\n" +
+                "CANCEL – remind me at next startup",
+                "Update Available",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Information);
+
+            if (choice == MessageBoxResult.No)
+            {
+                _userSettings.SkippedUpdateVersion = check.LatestVersion;
+                SaveUserSettings();
+                StatusText.Text = $"Skipped update {check.LatestVersion}";
+                return;
+            }
+
+            if (choice != MessageBoxResult.Yes)
+                return;
+
+            var progress = new Progress<string>(status => StatusText.Text = status);
+            await AppUpdateFlow.DownloadAndRestartAsync(this, check, progress);
         }
 
         private void TryMigrateLegacySettingsFile()
@@ -285,14 +349,25 @@ namespace TarkovTracker
         internal void ApplyOverlayCenterOnPlayer(bool enabled)
         {
             _userSettings.OverlayCenterOnPlayer = enabled;
-              SaveUserSettings();
+            SaveUserSettings();
         }
 
         internal void ApplyScreenshotParsingEnabled(bool enabled)
         {
             _userSettings.ScreenshotParsingEnabled = enabled;
-              SaveUserSettings();
+            SaveUserSettings();
             UpdateScreenshotMonitoringStatus();
+        }
+
+        internal void ApplyCheckForUpdatesOnStartup(bool enabled)
+        {
+            _userSettings.CheckForUpdatesOnStartup = enabled;
+
+            // Re-enabling means the user wants prompts again, including for a skipped release.
+            if (enabled)
+                _userSettings.SkippedUpdateVersion = "";
+
+            SaveUserSettings();
         }
 
         internal void ClearRaidExfilHighlights()
@@ -1289,6 +1364,7 @@ namespace TarkovTracker
                         Position = $"X={extract.Position.X:0.##}, Y={extract.Position.Y:0.##}, Z={extract.Position.Z:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
+                        GameY = extract.Position.Y,
                         LinkedSwitchIds = extract.Switches
                             .Select(s => s.Id)
                             .Where(id => !string.IsNullOrWhiteSpace(id))
@@ -1317,7 +1393,8 @@ namespace TarkovTracker
                         Conditions = conditions,
                         Position = $"X={transit.Position.X:0.##}, Y={transit.Position.Y:0.##}, Z={transit.Position.Z:0.##}",
                         NormalizedX = converted.normalizedX,
-                        NormalizedY = converted.normalizedY
+                        NormalizedY = converted.normalizedY,
+                        GameY = transit.Position.Y
                     });
                 }
             }
@@ -1428,6 +1505,7 @@ namespace TarkovTracker
                         Position = $"X={questMarker.X.Value:0.##}, Y={(questMarker.Y ?? 0):0.##}, Z={questMarker.Z.Value:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
+                        GameY = questMarker.Y,
                         QuestCategory = category,
                         QuestObjectiveType = questMarker.ObjectiveType,
                         QuestItem = questMarker.QuestItem,
@@ -1463,6 +1541,7 @@ namespace TarkovTracker
                         Position = $"X={hazard.Position.X:0.##}, Y={hazard.Position.Y:0.##}, Z={hazard.Position.Z:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
+                        GameY = hazard.Position.Y,
                         HideLabel = hideLabel,
                         Outline = BuildNormalizedOutline(hazard.Outline)
                     });
@@ -1489,6 +1568,7 @@ namespace TarkovTracker
                         Position = $"X={mapSwitch.Position.X:0.##}, Y={mapSwitch.Position.Y:0.##}, Z={mapSwitch.Position.Z:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
+                        GameY = mapSwitch.Position.Y,
                         SwitchId = mapSwitch.Id
                     });
                 }
@@ -1513,6 +1593,7 @@ namespace TarkovTracker
                         Position = $"X={label.X:0.##}, Z={label.Z:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
+                        GameY = GetLabelGameY(label),
                         LabelRotation = label.Rotation,
                         LabelSize = GetLabelFontSize(label.Size)
                     });
@@ -1537,7 +1618,8 @@ namespace TarkovTracker
                         Conditions = "",
                         Position = $"X={stop.X:0.##}, Y={stop.Y:0.##}, Z={stop.Z:0.##}",
                         NormalizedX = converted.normalizedX,
-                        NormalizedY = converted.normalizedY
+                        NormalizedY = converted.normalizedY,
+                        GameY = stop.Y
                     });
                 }
             }
@@ -1854,6 +1936,14 @@ namespace TarkovTracker
                 return 8;
 
             return Math.Max(7, Math.Min(13, size / 8.0));
+        }
+
+        private static double? GetLabelGameY(MapLabel label)
+        {
+            if (label.Bottom.HasValue && label.Top.HasValue)
+                return (label.Bottom.Value + label.Top.Value) / 2.0;
+
+            return label.Bottom ?? label.Top;
         }
 
         private string GetExtractConditions(ExtractInfo extract)
@@ -2434,21 +2524,22 @@ namespace TarkovTracker
             double qw = double.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture);
 
             double direction = GetYawFromQuaternion(qx, qy, qz, qw);
-            direction = ApplyMapDirectionOffset(direction);
 
             _lastGameX = gameX;
             _lastGameY = gameY;
             _lastGameZ = gameZ;
             _lastDirection = direction;
 
+            double mapDirection = ApplyMapDirectionOffset(direction);
+
             GameXText.Text = gameX.ToString("0.00", CultureInfo.InvariantCulture);
             GameYText.Text = gameY.ToString("0.00", CultureInfo.InvariantCulture);
             GameZText.Text = gameZ.ToString("0.00", CultureInfo.InvariantCulture);
-            DirectionText.Text = direction.ToString("0.00", CultureInfo.InvariantCulture) + "\u00B0";
+            DirectionText.Text = mapDirection.ToString("0.00", CultureInfo.InvariantCulture) + "\u00B0";
 
             SetParserStatus($"TRACKING {DateTime.Now:T}");
 
-            StatusText.Text = $"X={gameX:0.00} Y={gameY:0.00} Z={gameZ:0.00} DIR={direction:0.00}";
+            StatusText.Text = $"X={gameX:0.00} Y={gameY:0.00} Z={gameZ:0.00} DIR={mapDirection:0.00}";
 
             DrawPlayerMarkerFromGameCoordinates(gameX, gameZ, direction, _userSettings.OverlayCenterOnPlayer);
             ApplyAutoFloorFromPlayerHeight(gameY);
@@ -2465,13 +2556,12 @@ namespace TarkovTracker
 
         private double ApplyMapDirectionOffset(double direction)
         {
-            string mapName = MapDataService.NormalizeMapName(_currentMapDisplayName ?? CurrentMapText.Text);
-
-            // Customs and the other maps tested use the raw screenshot direction correctly.
-            // Factory/Night Factory SVG orientation is opposite for player-facing direction,
-            // so correct only those maps before drawing the marker in the main window and overlay.
-            if (mapName == "factory" || mapName == "nightfactory")
-                direction += 90;
+            // Screenshot yaw is Unity heading (0 = +Z). map-view.js adds 180° when rotating the
+            // chevron, which matches maps whose SVG uses coordinateRotation 180 (Customs, Woods,
+            // etc.). Factory is 90 and Labs/Labyrinth are 270, so rotate heading by
+            // (180 - coordinateRotation) to match the same 2D rotation applied to X/Z.
+            int coordinateRotation = _currentMapConfig?.Svg?.CoordinateRotation ?? 180;
+            direction += 180 - coordinateRotation;
 
             while (direction > 180) direction -= 360;
             while (direction < -180) direction += 360;
@@ -2490,7 +2580,7 @@ namespace TarkovTracker
             _ = SetPlayerMarkerInWebViewAsync(
                 converted.normalizedX,
                 converted.normalizedY,
-                directionDegrees,
+                ApplyMapDirectionOffset(directionDegrees),
                 centerOverlayOnPlayer);
         }
 

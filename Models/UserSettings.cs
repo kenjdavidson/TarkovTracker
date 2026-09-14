@@ -50,4 +50,15 @@ public class UserAppSettings
     /// When true, screenshot player height (Y) auto-selects the matching floor in LEVELS.
     /// </summary>
     public bool AutoSelectFloorFromPlayerHeight { get; set; } = true;
+
+    /// <summary>
+    /// When true, the app checks GitHub for a newer release shortly after startup.
+    /// </summary>
+    public bool CheckForUpdatesOnStartup { get; set; } = true;
+
+    /// <summary>
+    /// Release version the user chose to skip (e.g. "2.7.9"). The startup prompt stays
+    /// hidden for this version only; a newer release prompts again.
+    /// </summary>
+    public string SkippedUpdateVersion { get; set; } = "";
 }
