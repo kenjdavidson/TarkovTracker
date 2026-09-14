@@ -55,7 +55,7 @@ namespace TarkovTracker
         private bool _webMessageHooked = false;
         private bool _mapWebViewHostMapped = false;
 
-        private UserAppSettings _userSettings = new();
+        private readonly UserAppSettings _userSettings = new();
         private bool _markerFiltersHaveSavedState;
         private bool _suppressMapSelectionPersistence;
         private bool _isInitializing;
@@ -117,6 +117,7 @@ namespace TarkovTracker
 
             ApplySaveMarkerFiltersSettingToUi();
             ApplyAutoSelectFloorSettingToUi();
+            ApplyShowQuestNamesSettingToUi();
             ApplyMarkerFiltersForSession();
 
             _suppressMarkerFilterRefresh = false;
@@ -940,10 +941,11 @@ namespace TarkovTracker
                 Labels = ShowLabelsCheckBox?.IsChecked == true,
                 QuestItems = ShowQuestItemsCheckBox?.IsChecked == true,
                 QuestObjectives = ShowQuestObjectivesCheckBox?.IsChecked == true,
+                ShowQuestNames = ShowQuestNamesCheckBox?.IsChecked == true,
                 Hazards = ShowHazardsCheckBox?.IsChecked == true,
                 HazardZones = ShowHazardZonesCheckBox?.IsChecked == true,
                 Switches = ShowSwitchesCheckBox?.IsChecked == true,
-                BtrStops = supportsBtr && ShowBtrStopsCheckBox?.IsChecked == true,
+                BtrStops = supportsBtr && ShowBtrStopsCheckBox?.IsChecked == true,                
                 CustomPins = ShowCustomPinsCheckBox?.IsChecked == true
             };
         }
@@ -1025,6 +1027,15 @@ namespace TarkovTracker
                 return;
 
             AutoSelectFloorCheckBox.IsChecked = _userSettings.AutoSelectFloorFromPlayerHeight;
+        }
+
+        private void ApplyShowQuestNamesSettingToUi()
+        {
+            if (ShowQuestNamesCheckBox == null)
+                return;
+
+            System.Console.WriteLine($"ShowQuestNamesCheckBox is {_userSettings.ShowQuestNames}");
+            ShowQuestNamesCheckBox.IsChecked = _userSettings.ShowQuestNames;
         }
 
         private void ApplyMarkerFiltersForSession()
@@ -1867,6 +1878,20 @@ namespace TarkovTracker
             }
         }
 
+        private async System.Threading.Tasks.Task ApplyShowQuestNamesAsync()
+        {
+            if (!_webViewReady)
+                return;
+
+            bool showQuestNames = ShowQuestNamesCheckBox?.IsChecked == true;
+            await MapWebView.ExecuteScriptAsync($"setQuestNamesVisibility({showQuestNames.ToString().ToLower()});");
+
+            if (_overlayWindow != null)
+            {
+                await _overlayWindow.ApplyShowQuestNamesAsync(showQuestNames);
+            }
+        }
+
         private async void MarkerSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_isInitializing)
@@ -1966,6 +1991,17 @@ namespace TarkovTracker
 
                 await ApplySearchAndQuestFiltersAsync();
             }, "Clear search filters");
+        }
+
+        private async void ShowQuestNamesCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing || ShowQuestNamesCheckBox == null)
+                return;
+
+            _userSettings.ShowQuestNames = ShowQuestNamesCheckBox.IsChecked == true;
+            SaveUserSettings();
+
+            await ApplyShowQuestNamesAsync();            
         }
 
         private static bool IsLandmineHazard(string hazardName, string? hazardType)
