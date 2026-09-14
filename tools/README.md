@@ -11,8 +11,10 @@ Scripts in this folder refresh map data from tarkov.dev. They are **not** used a
 
 | Task | Script |
 |------|--------|
-| Refresh quest markers (recommended) | `build_quest_markers_from_api.ps1` |
-| Refresh boss spawn markers | `build_boss_spawn_markers.ps1` |
+| Refresh quest markers from json.tarkov.dev | `build_quest_markers_from_api.ps1` |
+| Refresh extracts | `build_extracts_from_api.ps1` |
+| Refresh raw spawn points (Night Factory cultists merge onto Factory) | `fetch-boss-data.ps1` |
+| Refresh boss spawn markers (needs spawn points) | `build_boss_spawn_markers.ps1` |
 | Refresh map level toggles | `build_map_levels.ps1` |
 | Build Icebreaker floor layers from tarkov.dev tiles | `build_icebreaker_layers.ps1` |
 | Build any map from tarkov.dev tiles (Labs, Labyrinth) | `build_tile_map.ps1` |
@@ -27,8 +29,9 @@ Scripts in this folder refresh map data from tarkov.dev. They are **not** used a
 ## Quest data sources
 
 `tarkov.dev` is the only source that carries quest ids, objectives **and** map
-coordinates in the shape this app needs, so it is the one to update from. Checked
-alternatives, none of which can replace it:
+coordinates in the shape this app needs, so it is the one to update from. Scripts
+share `tarkov_json_api.ps1` and call `https://json.tarkov.dev`.
+Checked alternatives, none of which can replace it:
 
 | Source | Last updated | Why not |
 |--------|--------------|---------|
@@ -37,8 +40,8 @@ alternatives, none of which can replace it:
 | SPT Gitea (`dev.sp-tarkov.com`) | n/a | returns HTTP 410 |
 | EFT Fandom wiki | current | names only, and names diverge (Gunsmith listed per weapon, multi-part quests collapsed, Arena quests mixed in) |
 
-`compare_wiki_quests.ps1` runs the wiki check anyway as a rough interim signal. Expect
-a lot of false hits; it cannot confirm anything on its own.
+`compare_wiki_quests.ps1` can still name-check against the wiki. Expect a lot of
+false hits; it cannot confirm ids, objectives, or map positions.
 
 ## Legacy
 

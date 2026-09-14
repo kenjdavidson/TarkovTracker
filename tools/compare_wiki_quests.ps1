@@ -1,8 +1,8 @@
-# Interim quest check for when tarkov.dev's API is unavailable.
+# Optional name-only check against the Escape from Tarkov wiki.
 #
-# Pulls the current quest list from the Escape from Tarkov wiki and diffs the names
-# against the local task snapshot. This only yields names - no ids, objectives or map
-# positions - so treat the output as candidates to confirm against tarkov.dev later.
+# Diffs wiki quest titles against the local task snapshot. This only yields names -
+# no ids, objectives or map positions - so treat the output as candidates to confirm
+# against json.tarkov.dev later.
 
 param(
     [string]$Category = 'Category:Quests',

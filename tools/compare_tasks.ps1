@@ -1,192 +1,39 @@
-# Compare live tarkov.dev tasks against the local snapshot in data/tarkov_tasks_raw.json
+# Compare live json.tarkov.dev tasks against the local snapshot in data/tarkov_tasks_raw.json
 # and report new, removed and changed quests.
 #
 # Pass -Update to overwrite the snapshot once the differences have been reviewed.
-# Pass -Json <path> to read a previously saved API response instead of fetching.
+# Pass -Json <path> to read a previously saved flattened task list instead of fetching.
 
 param(
     [switch]$Update,
-    [string]$Json,
-    [int]$Retries = 3,
-    [int]$RetryDelaySeconds = 10
+    [string]$Json
 )
 
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Net.Http
-
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $snapshotPath = Join-Path $toolsDir 'data\tarkov_tasks_raw.json'
 
-$query = @'
-query {
-  tasks {
-    id
-    tarkovDataId
-    name
-    normalizedName
-    trader { name }
-    map { name }
-    factionName
-    minPlayerLevel
-    kappaRequired
-    lightkeeperRequired
-    wikiLink
-    objectives {
-      id
-      __typename
-      type
-      description
-      optional
-      maps { name }
-      ... on TaskObjectiveBasic { zones { map { name } position { x y z } } }
-      ... on TaskObjectiveItem {
-        count
-        foundInRaid
-        item { name shortName iconLink }
-        zones { map { name } position { x y z } }
-      }
-      ... on TaskObjectiveQuestItem {
-        count
-        questItem { name shortName iconLink }
-        zones { map { name } position { x y z } }
-        possibleLocations { map { name } positions { x y z } }
-      }
-      ... on TaskObjectiveMark {
-        markerItem { name shortName iconLink }
-        zones { map { name } position { x y z } }
-      }
-      ... on TaskObjectiveUseItem { zones { map { name } position { x y z } } }
-      ... on TaskObjectiveShoot { count zones { map { name } position { x y z } } }
-    }
-  }
-}
-'@
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
-# --- fetch (or load) the live task list ---
 if ($Json) {
-    $response = Get-Content $Json -Raw | ConvertFrom-Json
+    $live = @(Read-TarkovJsonSnapshot $Json)
 }
 else {
-    $client = New-Object System.Net.Http.HttpClient
-    $client.Timeout = [TimeSpan]::FromSeconds(120)
-    $client.DefaultRequestHeaders.Add('User-Agent', 'TarkovTracker-maintenance')
-
-    $payload = @{ query = $query } | ConvertTo-Json
-    $response = $null
-    for ($attempt = 1; $attempt -le $Retries; $attempt++) {
-        $content = New-Object System.Net.Http.StringContent $payload, ([System.Text.Encoding]::UTF8), 'application/json'
-        try {
-            $httpResponse = $client.PostAsync('https://api.tarkov.dev/graphql', $content).GetAwaiter().GetResult()
-            $text = $httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-            if (-not $httpResponse.IsSuccessStatusCode) {
-                Write-Output ("attempt {0}/{1}: HTTP {2} - {3}" -f $attempt, $Retries, [int]$httpResponse.StatusCode, $text.Trim())
-            }
-            else {
-                $response = $text | ConvertFrom-Json
-                break
-            }
-        }
-        catch {
-            Write-Output ("attempt {0}/{1}: {2}" -f $attempt, $Retries, $_.Exception.Message)
-        }
-        if ($attempt -lt $Retries) { Start-Sleep -Seconds $RetryDelaySeconds }
-    }
-    $client.Dispose()
-
-    if ($null -eq $response) {
-        Write-Output ''
-        Write-Output 'tarkov.dev GraphQL API is not responding. Nothing was compared; try again later.'
-        exit 2
-    }
+    $catalog = Get-TarkovLiveTaskCatalog
+    $live = @($catalog.Tasks)
 }
 
-if ($response.errors) {
-    Write-Output 'GraphQL errors:'
-    $response.errors | ConvertTo-Json -Depth 5
-    exit 1
-}
-
-# --- flatten the API shape into the same form the snapshot uses ---
-function Flatten([object]$apiTasks) {
-    $out = New-Object System.Collections.Generic.List[object]
-    foreach ($task in $apiTasks) {
-        $objectives = New-Object System.Collections.Generic.List[object]
-        foreach ($obj in $task.objectives) {
-            $type = [string]$obj.__typename
-
-            $itemName = ''; $itemShort = ''; $itemIcon = ''
-            foreach ($candidate in @($obj.item, $obj.questItem, $obj.markerItem)) {
-                if ($candidate) {
-                    $itemName = [string]$candidate.name
-                    $itemShort = [string]$candidate.shortName
-                    $itemIcon = [string]$candidate.iconLink
-                    break
-                }
-            }
-
-            $zones = New-Object System.Collections.Generic.List[object]
-            foreach ($z in @($obj.zones)) {
-                if (-not $z -or -not $z.position) { continue }
-                $zones.Add([pscustomobject]@{ map = [string]$z.map.name; x = $z.position.x; y = $z.position.y; z = $z.position.z })
-            }
-            foreach ($pl in @($obj.possibleLocations)) {
-                if (-not $pl -or -not $pl.positions) { continue }
-                foreach ($pos in $pl.positions) {
-                    $zones.Add([pscustomobject]@{ map = [string]$pl.map.name; x = $pos.x; y = $pos.y; z = $pos.z })
-                }
-            }
-
-            $objectives.Add([pscustomobject]@{
-                id            = [string]$obj.id
-                objectiveType = $type
-                category      = $(if ($type -match 'Item|QuestItem') { 'item' } else { 'objective' })
-                type          = [string]$obj.type
-                description   = [string]$obj.description
-                optional      = [bool]$obj.optional
-                maps          = @(@($obj.maps) | ForEach-Object { [string]$_.name })
-                count         = $obj.count
-                foundInRaid   = $obj.foundInRaid
-                itemName      = $itemName
-                itemShortName = $itemShort
-                itemIconLink  = $itemIcon
-                zones         = @($zones)
-            })
-        }
-
-        $out.Add([pscustomobject]@{
-            id                  = [string]$task.id
-            tarkovDataId        = $task.tarkovDataId
-            name                = [string]$task.name
-            normalizedName      = [string]$task.normalizedName
-            trader              = [string]$task.trader.name
-            map                 = [string]$task.map.name
-            factionName         = [string]$task.factionName
-            minPlayerLevel      = $task.minPlayerLevel
-            kappaRequired       = $task.kappaRequired
-            lightkeeperRequired = $task.lightkeeperRequired
-            wikiLink            = [string]$task.wikiLink
-            objectives          = @($objectives)
-        })
-    }
-    return $out
-}
-
-$live = Flatten $response.data.tasks
-# ConvertFrom-Json emits a JSON array as a single object in PowerShell 5.1, so assign
-# first and wrap afterwards - @(...) around the pipeline would nest the whole array.
-$snapshot = Get-Content $snapshotPath -Raw | ConvertFrom-Json
-$snapshot = @($snapshot)
+$snapshot = @(Read-TarkovJsonSnapshot $snapshotPath)
 
 'tarkov.dev : {0} tasks' -f $live.Count
-'snapshot   : {0} tasks   (last written {1:yyyy-MM-dd})' -f $snapshot.Count, (Get-Item $snapshotPath).LastWriteTime
+'snapshot   : {0} tasks   (last written {1:yyyy-MM-dd})' -f $snapshot.Count, $(if (Test-Path $snapshotPath) { (Get-Item $snapshotPath).LastWriteTime } else { [datetime]::MinValue })
 ''
 
-$liveById = @{}; foreach ($t in $live) { $liveById[$t.id] = $t }
-$snapById = @{}; foreach ($t in $snapshot) { $snapById[$t.id] = $t }
+$liveById = @{}; foreach ($t in $live) { $liveById[[string]$t.id] = $t }
+$snapById = @{}; foreach ($t in $snapshot) { $snapById[[string]$t.id] = $t }
 
-# --- new and removed ---
-$new = @($live | Where-Object { -not $snapById.ContainsKey($_.id) })
-$removed = @($snapshot | Where-Object { -not $liveById.ContainsKey($_.id) })
+$new = @($live | Where-Object { -not $snapById.ContainsKey([string]$_.id) })
+$removed = @($snapshot | Where-Object { -not $liveById.ContainsKey([string]$_.id) })
 
 '=== NEW quests ({0}) ===' -f $new.Count
 foreach ($t in ($new | Sort-Object trader, name)) {
@@ -205,7 +52,6 @@ foreach ($t in ($removed | Sort-Object trader, name)) {
 }
 if ($removed.Count -eq 0) { '  none' }
 
-# --- changed ---
 $scalars = @('name', 'normalizedName', 'trader', 'map', 'factionName', 'minPlayerLevel',
     'kappaRequired', 'lightkeeperRequired')
 
@@ -217,8 +63,9 @@ function ObjectiveFingerprint($objective) {
 
 $changed = New-Object System.Collections.Generic.List[object]
 foreach ($t in $live) {
-    if (-not $snapById.ContainsKey($t.id)) { continue }
-    $old = $snapById[$t.id]
+    $tid = [string]$t.id
+    if (-not $snapById.ContainsKey($tid)) { continue }
+    $old = $snapById[$tid]
     $diffs = New-Object System.Collections.Generic.List[string]
 
     foreach ($field in $scalars) {
@@ -265,15 +112,31 @@ foreach ($entry in ($changed | Sort-Object { $_.Task.name })) {
 }
 if ($changed.Count -eq 0) { '  none' }
 
-# --- position-bearing objectives drive the map markers ---
 $livePositions = (@($live | ForEach-Object { $_.objectives } | ForEach-Object { @($_.zones).Count }) | Measure-Object -Sum).Sum
 $snapPositions = (@($snapshot | ForEach-Object { $_.objectives } | ForEach-Object { @($_.zones).Count }) | Measure-Object -Sum).Sum
 ''
 'objective positions (map markers): snapshot {0}, tarkov.dev {1}, delta {2}' -f
     $snapPositions, $livePositions, ($livePositions - $snapPositions)
 
+$appMapKeys = Get-TarkovAppQuestMapKeys
+$liveTrackable = @($live | Where-Object { @($_.objectives | Where-Object { @($_.zones).Count -gt 0 }).Count -gt 0 })
+$unmapped = 0
+foreach ($t in $liveTrackable) {
+    $onAppMap = $false
+    foreach ($obj in @($t.objectives)) {
+        foreach ($z in @($obj.zones)) {
+            $key = Resolve-TarkovQuestMapKey ([string]$z.normalizedName)
+            if ($appMapKeys -contains $key) { $onAppMap = $true }
+        }
+    }
+    if (-not $onAppMap) { $unmapped++ }
+}
+''
+'trackable tasks: {0}  (with at least one map position)' -f $liveTrackable.Count
+'trackable tasks not on an app map: {0}' -f $unmapped
+
 if ($Update) {
-    $live | ConvertTo-Json -Depth 8 | Set-Content $snapshotPath -Encoding utf8
+    ConvertTo-TarkovJsonSnapshot $live | Set-Content $snapshotPath -Encoding utf8
     ''
     'snapshot updated: {0}' -f $snapshotPath
     'run build_quest_markers_from_api.ps1 next to rebuild Config/tarkov_quest_markers.json'

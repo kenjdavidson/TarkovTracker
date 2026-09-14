@@ -1,19 +1,22 @@
 $ErrorActionPreference = 'Stop'
-$q = @'
-{
-  maps {
-    name
-    normalizedName
-  }
-}
-'@
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
+
 # Check static maps.json from github we already have - bounds are [[463,-580],[-433,475]]
 
-# Compute bounds from spawn extent with padding
-$q2 = '{ maps { normalizedName spawns { position { x z } } } }'
-$t = ((Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body (@{query=$q2}|ConvertTo-Json)).data.maps | Where-Object normalizedName -eq 'terminal')
-$xs = $t.spawns | ForEach-Object { [double]$_.position.x }
-$zs = $t.spawns | ForEach-Object { [double]$_.position.z }
+$t = Get-TarkovJsonMap -NormalizedName 'terminal'
+if ($null -eq $t) {
+    throw 'Terminal map not found in json.tarkov.dev maps dump.'
+}
+
+$spawns = @($t.spawns | Where-Object { $_ -and $_.position })
+if ($spawns.Count -eq 0) {
+    throw 'json.tarkov.dev has no Terminal spawns to check bounds from.'
+}
+
+$xs = $spawns | ForEach-Object { [double]$_.position.x }
+$zs = $spawns | ForEach-Object { [double]$_.position.z }
 $minX = ($xs | Measure-Object -Minimum).Minimum
 $maxX = ($xs | Measure-Object -Maximum).Maximum
 $minZ = ($zs | Measure-Object -Minimum).Minimum
@@ -38,7 +41,6 @@ function Get-Pixels($x, $z, $rotation) {
     return @($px, $py)
 }
 
-$oldBounds = @(@(463, -580), @(-433, 475))
 Write-Output ''
 Write-Output 'Pixel extents with CURRENT bounds (tarkov.dev):'
 foreach ($corner in @(@(463,-580), @(-433,-580), @(463,475), @(-433,475))) {
@@ -46,11 +48,10 @@ foreach ($corner in @(@(463,-580), @(-433,-580), @(463,475), @(-433,475))) {
     Write-Output ("  game ({0},{1}) -> px ({2:F1},{3:F1})" -f $corner[0],$corner[1],$p[0],$p[1])
 }
 
-$sampleSpawn = $t.spawns[0].position
+$sampleSpawn = $spawns[0].position
 $pSpawn = Get-Pixels $sampleSpawn.x $sampleSpawn.z 180
 Write-Output ("Sample spawn ({0},{1}) -> px ({2:F1},{3:F1})" -f $sampleSpawn.x,$sampleSpawn.z,$pSpawn[0],$pSpawn[1])
 
-# Proposed bounds from spawn data
 $padX = 50; $padZ = 50
 $newBounds = @(@($maxX + $padX, $minZ - $padZ), @($minX - $padX, $maxZ + $padZ))
 Write-Output ''

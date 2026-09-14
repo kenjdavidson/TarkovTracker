@@ -1,64 +1,37 @@
 $ErrorActionPreference = 'Stop'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $configDir = Join-Path (Split-Path $toolsDir -Parent) 'Config'
-$toolsDataDir = Join-Path $toolsDir 'data'
 $spawnsPath = Join-Path $configDir 'tarkov_spawns_raw.json'
 $outputPath = Join-Path $configDir 'tarkov_boss_spawn_markers.json'
 
-function Normalize-MapName([string]$name) {
-    return -join ($name.ToLowerInvariant().ToCharArray() | Where-Object { [char]::IsLetterOrDigit($_) })
-}
+. (Join-Path $toolsDir 'tarkov_json_api.ps1')
 
-function Resolve-MapKey([string]$mapName) {
-    switch (Normalize-MapName $mapName) {
-        'nightfactory' { return 'factory' }
-        'groundzero21' { return 'groundzero' }
-        'lab' { return 'thelab' }
-        'streetsoftarkov' { return 'streetsoftarkov' }
-        'thelabyrinth' { return 'thelabyrinth' }
-        default { return Normalize-MapName $mapName }
-    }
-}
-
-$query = @'
-{
-  maps {
-    name
-    bosses {
-      boss { name normalizedName }
-      spawnLocations { spawnKey name chance }
-    }
-  }
-}
-'@
-
-$body = @{ query = $query } | ConvertTo-Json
-$api = Invoke-RestMethod -Uri 'https://api.tarkov.dev/graphql' -Method Post -ContentType 'application/json' -Body $body
-if ($api.errors) { $api.errors | ConvertTo-Json; exit 1 }
+$maps = @(Get-TarkovJsonMaps)
 
 $spawnsRoot = Get-Content $spawnsPath -Raw | ConvertFrom-Json
 $spawnsByMap = @{}
 foreach ($map in $spawnsRoot.data.maps) {
-    $key = Resolve-MapKey $map.name
+    $key = Resolve-TarkovAppMapKey $map.name
     if (-not $spawnsByMap.ContainsKey($key)) {
         $spawnsByMap[$key] = @()
     }
     $spawnsByMap[$key] += $map.spawns
 }
 
-$appMaps = @('factory','customs','woods','shoreline','interchange','thelab','reserve','lighthouse','streetsoftarkov','groundzero','terminal','thelabyrinth')
+$appMaps = @(Get-TarkovAppBossMapKeys)
 $byMap = @{}
 
-foreach ($map in $api.data.maps) {
-    $mapKey = Resolve-MapKey $map.name
+foreach ($map in $maps) {
+    $mapKey = Resolve-TarkovAppMapKey $map.name
     if ($appMaps -notcontains $mapKey) { continue }
     if (-not $map.bosses) { continue }
 
     $mapSpawns = if ($spawnsByMap.ContainsKey($mapKey)) { $spawnsByMap[$mapKey] } else { @() }
 
-    foreach ($bossEntry in $map.bosses) {
-        if (-not $bossEntry.spawnLocations) { continue }
-        foreach ($loc in $bossEntry.spawnLocations) {
+    foreach ($bossEntry in @($map.bosses)) {
+        if ($null -eq $bossEntry) { continue }
+        foreach ($loc in @($bossEntry.spawnLocations)) {
+            if ($null -eq $loc) { continue }
             $spawnKey = $loc.spawnKey
             $match = $mapSpawns | Where-Object {
                 $_.zoneName -eq $spawnKey -and $_.categories -contains 'boss'
@@ -74,14 +47,14 @@ foreach ($map in $api.data.maps) {
             }
 
             $marker = [ordered]@{
-                bossName      = $bossEntry.boss.name
+                bossName       = $bossEntry.boss.name
                 normalizedName = $bossEntry.boss.normalizedName
-                locationName  = $loc.name
-                zoneName      = $spawnKey
-                spawnChance   = [double]$loc.chance
-                x             = [double]$match.position.x
-                y             = [double]$match.position.y
-                z             = [double]$match.position.z
+                locationName   = $loc.name
+                zoneName       = $spawnKey
+                spawnChance    = [double]$loc.chance
+                x              = [double]$match.position.x
+                y              = [double]$match.position.y
+                z              = [double]$match.position.z
             }
 
             if (-not $byMap.ContainsKey($mapKey)) {

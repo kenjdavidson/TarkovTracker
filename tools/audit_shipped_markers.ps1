@@ -1,6 +1,5 @@
 # Check the shipped quest markers against the local task snapshot, without touching the
-# network. Confirms the marker file is consistent with the task data it came from and
-# gives a baseline to compare against once tarkov.dev is reachable again.
+# network. Confirms the marker file is consistent with the task data it came from.
 
 $ErrorActionPreference = 'Stop'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -15,12 +14,13 @@ function Resolve-QuestMapKey([string]$displayName) {
         'lab' { return 'thelab' }
         'nightfactory' { return 'factory' }
         'groundzero21' { return 'groundzero' }
+        'thelabyrinth' { return 'thelabyrinth' }
         default { return Normalize-MapName $displayName }
     }
 }
 
 $appMapKeys = @('factory', 'customs', 'woods', 'shoreline', 'interchange', 'thelab',
-    'reserve', 'lighthouse', 'streetsoftarkov', 'groundzero', 'terminal', 'thelabyrinth')
+    'reserve', 'lighthouse', 'streetsoftarkov', 'groundzero', 'terminal', 'thelabyrinth', 'icebreaker')
 
 # ConvertFrom-Json emits a JSON array as a single object in PowerShell 5.1, so assign
 # first and wrap afterwards - @(...) around the pipeline would nest the whole array.
@@ -58,7 +58,10 @@ foreach ($task in $snapshot) {
 '{0,-18} {1,8} {2,8} {3,7}   {4}' -f 'map', 'shipped', 'snapshot', 'delta', 'quests shipped/snapshot'
 $totalShipped = 0; $totalExpected = 0
 foreach ($key in ($appMapKeys | Sort-Object)) {
-    $markers = @($shipped.$key)
+    $markers = @()
+    if ($null -ne $shipped.PSObject.Properties[$key]) {
+        $markers = @($shipped.$key)
+    }
     $shippedCount = $markers.Count
     $expectedCount = $(if ($expected.ContainsKey($key)) { $expected[$key] } else { 0 })
     $totalShipped += $shippedCount

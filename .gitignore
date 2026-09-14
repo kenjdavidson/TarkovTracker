@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 # Local build transcripts
 build-log.txt
+
+# Local publish / test-build output
+dist/
