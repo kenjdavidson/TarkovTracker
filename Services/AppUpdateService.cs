@@ -33,6 +33,7 @@ public sealed class AppUpdateDownloadResult
 
 public static class AppUpdateService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private static readonly HttpClient Http = CreateClient();
 
     private static HttpClient CreateClient()
@@ -74,7 +75,7 @@ public static class AppUpdateService
             await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             GitHubRelease? release = await JsonSerializer.DeserializeAsync<GitHubRelease>(
                 stream,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                JsonOptions,
                 cancellationToken);
 
             if (release == null || string.IsNullOrWhiteSpace(release.TagName))
@@ -149,12 +150,13 @@ public static class AppUpdateService
             };
         }
 
-        if (string.IsNullOrWhiteSpace(check.DownloadUrl))
+        if (string.IsNullOrWhiteSpace(check.DownloadUrl) ||
+            !WebViewSecurity.IsTrustedGitHubDownloadUrl(check.DownloadUrl))
         {
             return new AppUpdateDownloadResult
             {
                 Succeeded = false,
-                Message = "The latest release has no downloadable .zip or .exe asset."
+                Message = "The latest release has no trusted downloadable .zip or .exe asset."
             };
         }
 
@@ -266,6 +268,12 @@ public static class AppUpdateService
     public static void OpenReleasePage(string? url)
     {
         string target = string.IsNullOrWhiteSpace(url) ? AppInfo.GitHubReleasesPageUrl : url!;
+        if (!WebViewSecurity.IsTrustedGitHubDownloadUrl(target) &&
+            !WebViewSecurity.IsAllowedHttpsUrl(target, "github.com", "www.github.com"))
+        {
+            target = AppInfo.GitHubReleasesPageUrl;
+        }
+
         Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
     }
 
@@ -274,6 +282,9 @@ public static class AppUpdateService
         string destinationPath,
         CancellationToken cancellationToken)
     {
+        if (!WebViewSecurity.IsTrustedGitHubDownloadUrl(url))
+            throw new InvalidOperationException("Update download URL is not a trusted GitHub address.");
+
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Accept.Clear();
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));

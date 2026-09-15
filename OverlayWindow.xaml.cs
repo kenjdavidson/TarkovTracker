@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using TarkovTracker.Services;
 
 namespace TarkovTracker
 {
@@ -14,12 +15,16 @@ namespace TarkovTracker
     {
         private bool _webViewReady = false;
         private bool _mapAssetHostMapped = false;
+        private bool _webViewHardened = false;
         private string? _mapsFolder;
         private string? _pendingMarkersJson;
         private string? _pendingRaidExfilHighlightsJson;
         private string? _pendingMapLevelStateJson;
         private string? _pendingMarkerFiltersJson;
         private string? _pendingCustomPinsJson;
+        private string? _pendingQuestFilterJson;
+        private string? _pendingMarkerSearchJson;
+        private bool? _pendingShowQuestNames;
         private (double NormalizedX, double NormalizedY, double DirectionDegrees)? _pendingPlayerMarker;
         private double _overlayOpacity = 0.80;
         private bool _suppressOpacitySliderRefresh;
@@ -58,6 +63,7 @@ namespace TarkovTracker
         private async Task EnsureMapAssetHostMappingAsync()
         {
             await OverlayMapView.EnsureCoreWebView2Async();
+            WebViewSecurity.ApplyOnce(OverlayMapView.CoreWebView2, MainWindow.MapAssetHostName, ref _webViewHardened);
 
             if (_mapAssetHostMapped || string.IsNullOrWhiteSpace(_mapsFolder))
                 return;
@@ -79,18 +85,9 @@ namespace TarkovTracker
             // Make the WebView itself transparent.
             OverlayMapView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
 
-            var tcs = new TaskCompletionSource<bool>();
-
-            void Handler(object? sender, CoreWebView2NavigationCompletedEventArgs e)
-            {
-                OverlayMapView.NavigationCompleted -= Handler;
-                tcs.TrySetResult(true);
-            }
-
-            OverlayMapView.NavigationCompleted += Handler;
-            OverlayMapView.NavigateToString(MakeOverlayHtml(html));
-
-            await tcs.Task;
+            await WebViewSecurity.NavigateToStringAsync(
+                OverlayMapView.CoreWebView2,
+                MakeOverlayHtml(html));
 
             _webViewReady = true;
 
@@ -111,6 +108,15 @@ namespace TarkovTracker
 
             if (!string.IsNullOrWhiteSpace(_pendingCustomPinsJson))
                 await SetCustomPinsAsync(_pendingCustomPinsJson);
+
+            if (!string.IsNullOrWhiteSpace(_pendingQuestFilterJson))
+                await ApplyQuestFiltersAsync(_pendingQuestFilterJson);
+
+            if (_pendingMarkerSearchJson != null)
+                await ApplyMarkerSearchAsync(_pendingMarkerSearchJson);
+
+            if (_pendingShowQuestNames.HasValue)
+                await ApplyShowQuestNamesAsync(_pendingShowQuestNames.Value);
 
             if (_pendingPlayerMarker != null)
             {
@@ -206,6 +212,15 @@ namespace TarkovTracker
             if (!string.IsNullOrWhiteSpace(_pendingMarkerFiltersJson))
                 await ApplyMarkerFiltersAsync(_pendingMarkerFiltersJson);
 
+            if (!string.IsNullOrWhiteSpace(_pendingQuestFilterJson))
+                await ApplyQuestFiltersAsync(_pendingQuestFilterJson);
+
+            if (_pendingMarkerSearchJson != null)
+                await ApplyMarkerSearchAsync(_pendingMarkerSearchJson);
+
+            if (_pendingShowQuestNames.HasValue)
+                await ApplyShowQuestNamesAsync(_pendingShowQuestNames.Value);
+
             if (!string.IsNullOrWhiteSpace(_pendingRaidExfilHighlightsJson))
                 await ApplyRaidExfilHighlightsAsync(_pendingRaidExfilHighlightsJson);
         }
@@ -267,18 +282,22 @@ namespace TarkovTracker
             await OverlayMapView.ExecuteScriptAsync($"applyMarkerFilters({filtersJson});");
         }
 
-        public async Task ApplyMarkerSearchAsync(string escapedSearchQuery)
+        public async Task ApplyMarkerSearchAsync(string searchJson)
         {
+            _pendingMarkerSearchJson = string.IsNullOrWhiteSpace(searchJson) ? "\"\"" : searchJson;
+
             if (!_webViewReady)
                 return;
 
-            await OverlayMapView.ExecuteScriptAsync($"applyMarkerSearch('{escapedSearchQuery}');");
+            await OverlayMapView.ExecuteScriptAsync($"applyMarkerSearch({_pendingMarkerSearchJson});");
         }
 
         public async Task ApplyQuestFiltersAsync(string questFilterJson)
         {
             if (string.IsNullOrWhiteSpace(questFilterJson))
                 return;
+
+            _pendingQuestFilterJson = questFilterJson;
 
             if (!_webViewReady)
                 return;
@@ -288,7 +307,13 @@ namespace TarkovTracker
 
         public async Task ApplyShowQuestNamesAsync(bool showQuestNames)
         {
-            await OverlayMapView.ExecuteScriptAsync($"setQuestNamesVisibility({showQuestNames.ToString().ToLower()});");
+            _pendingShowQuestNames = showQuestNames;
+
+            if (!_webViewReady)
+                return;
+
+            string visibility = showQuestNames ? "true" : "false";
+            await OverlayMapView.ExecuteScriptAsync($"setQuestNamesVisibility({visibility});");
         }
 
         public async Task SetCustomPinsAsync(string pinsJson)
@@ -389,4 +414,4 @@ namespace TarkovTracker
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     }
-}   
+}

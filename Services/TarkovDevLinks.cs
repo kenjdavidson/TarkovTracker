@@ -6,14 +6,15 @@ public static class TarkovDevLinks
 {
     public static string BuildTaskUrlFromSlug(string slug)
     {
-        return string.IsNullOrWhiteSpace(slug)
+        string cleaned = ToTaskSlug(slug);
+        return string.IsNullOrWhiteSpace(cleaned)
             ? "https://tarkov.dev/tasks"
-            : $"https://tarkov.dev/task/{slug}";
+            : $"https://tarkov.dev/task/{cleaned}";
     }
 
     public static string BuildTaskUrl(string questName)
     {
-        return BuildTaskUrlFromSlug(ToTaskSlug(questName));
+        return BuildTaskUrlFromSlug(questName);
     }
 
     public static string BuildWikiUrl(string questName)
@@ -21,8 +22,8 @@ public static class TarkovDevLinks
         if (string.IsNullOrWhiteSpace(questName))
             return "https://escapefromtarkov.fandom.com/wiki/Quests";
 
-        string wikiTitle = questName.Replace(' ', '_');
-        return $"https://escapefromtarkov.fandom.com/wiki/{wikiTitle}";
+        string wikiTitle = questName.Trim().Replace(' ', '_');
+        return "https://escapefromtarkov.fandom.com/wiki/" + Uri.EscapeDataString(wikiTitle);
     }
 
     public static string ToTaskSlug(string questName)
@@ -30,7 +31,7 @@ public static class TarkovDevLinks
         if (string.IsNullOrWhiteSpace(questName))
             return string.Empty;
 
-        var sb = new StringBuilder();
+        var sb = new StringBuilder(questName.Length);
         bool lastWasHyphen = false;
 
         foreach (char c in questName.ToLowerInvariant())

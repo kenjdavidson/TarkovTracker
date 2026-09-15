@@ -1,6 +1,6 @@
 # SayserTarkovTracker
 
-A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.8.0**).
+A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.8.1**).
 
 Built with **WPF** (.NET 10) and **WebView2**.
 
@@ -91,7 +91,7 @@ Open **SETTINGS** from the top bar (replaces the old screenshot-folder buttons o
 | **Overlay follow player** | When enabled, each new screenshot recenters the overlay on your position without changing zoom |
 | **Map actions** | **Clear raid exfil highlights** for the current map |
 | **Screenshot maintenance** | **Delete all screenshots** in the configured folder (with confirmation) |
-| **About** | App name and version (**2.8.0**), **Check for updates** (downloads and installs from GitHub Releases) |
+| **About** | App name and version (**2.8.1**), **Check for updates** (downloads and installs from GitHub Releases) |
 
 User preferences are stored in **`settings.json`** next to the executable (not in `%AppData%`). This includes screenshot folder, game resolution, overlay options, last selected map, custom pins per map, and the **Save marker selection** flag. Marker toggle states are saved only when that option is enabled in the **MARKERS** panel.
 

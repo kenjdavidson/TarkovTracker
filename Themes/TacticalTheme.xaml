@@ -18,9 +18,6 @@
     <SolidColorBrush x:Key="ComboBox.Static.Border" Color="#382E18" />
     <SolidColorBrush x:Key="ComboBox.MouseOver.Background" Color="#1A150B" />
     <SolidColorBrush x:Key="ComboBox.MouseOver.Border" Color="#CFA348" />
-    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#0C0C0C" />
-    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#0C0C0C" />
-    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#CFA348" />
 
     <SolidColorBrush x:Key="TacticalBgDarkBrush" Color="{StaticResource TacticalBgDark}"/>
     <SolidColorBrush x:Key="TacticalBgPanelBrush" Color="{StaticResource TacticalBgPanel}"/>
@@ -305,7 +302,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>    
+    </Style>
 
     <!-- ListBox -->
     <Style x:Key="TacticalListBox" TargetType="ListBox">

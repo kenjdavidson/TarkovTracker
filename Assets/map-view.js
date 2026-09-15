@@ -16,6 +16,8 @@ let playerMarkerData = null;
 let customPinsEnabled = false;
 let customPins = [];
 let customPinCounter = 0;
+let cachedMapMarkers = [];
+let cachedCustomPins = [];
 
 function getViewBox() {
     let raw = svg.getAttribute('viewBox');
@@ -45,6 +47,9 @@ function initialize() {
 
 function applyTransform() {
     content.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+}
+
+function refreshCounterScales() {
     updatePlayerMarkerVisual();
     updateMapMarkerVisuals();
     updateCustomMarkerVisuals();
@@ -62,6 +67,7 @@ function resetView() {
     panY = (stage.clientHeight - vb.h * scale) / 2;
 
     applyTransform();
+    refreshCounterScales();
 }
 
 function centerMapOnPlayer() {
@@ -106,9 +112,23 @@ function updatePlayerMarkerVisual() {
 }
 
 function clearMapMarkers() {
+    cachedMapMarkers = [];
     markerLayer.innerHTML = '';
     if (hazardOutlineLayer) {
         hazardOutlineLayer.innerHTML = '';
+    }
+}
+
+function sanitizeCssClass(value) {
+    return String(value || '').replace(/[^a-zA-Z0-9_-]+/g, ' ').trim();
+}
+
+function isSafeHttpUrl(value) {
+    try {
+        let url = new URL(value);
+        return url.protocol === 'https:';
+    } catch (e) {
+        return false;
     }
 }
 
@@ -157,7 +177,7 @@ function addMapMarkers(markers) {
     for (let m of markers) {
         let marker = document.createElement('div');
 
-        marker.className = 'mapMarker ' + m.cssClass;
+        marker.className = ('mapMarker ' + sanitizeCssClass(m.cssClass)).trim();
         marker.dataset.markerType = m.markerType;
         marker.dataset.markerName = m.name || '';
         marker.dataset.faction = m.faction || '';
@@ -193,9 +213,9 @@ function addMapMarkers(markers) {
         let dot = document.createElement('div');
         dot.className = 'markerDot';
 
-        if (m.markerType === 'quest' && m.questCategory === 'item' && m.questItemIconLink) {
+        if (m.markerType === 'quest' && m.questCategory === 'item' && isSafeHttpUrl(m.questItemIconLink)) {
             dot.classList.add('markerItemIcon');
-            dot.style.backgroundImage = "url('" + m.questItemIconLink.replace(/'/g, '%27') + "')";
+            dot.style.backgroundImage = 'url(' + JSON.stringify(m.questItemIconLink) + ')';
         }
 
         marker.appendChild(dot);
@@ -253,6 +273,7 @@ function addMapMarkers(markers) {
         }
     }
 
+    cacheMapMarkers();
     updateMapMarkerVisuals();
     refreshMarkerLevelVisibility();
     refreshRaidExfilHighlights();
@@ -260,22 +281,28 @@ function addMapMarkers(markers) {
     refreshQuestFilterVisibility();
 }
 
+function cacheMapMarkers() {
+    cachedMapMarkers = markerLayer ? Array.prototype.slice.call(markerLayer.children) : [];
+}
+
+function cacheCustomPins() {
+    cachedCustomPins = customMarkerLayer ? Array.prototype.slice.call(customMarkerLayer.children) : [];
+}
+
 function updateMapMarkerVisuals() {
     let inverseScale = 1 / scale;
-
-    document.querySelectorAll('#markerLayer .mapMarker').forEach(function(marker) {
-        marker.style.transform = `scale(${inverseScale})`;
-    });
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        cachedMapMarkers[i].style.transform = `scale(${inverseScale})`;
+    }
 }
 
 function updateCustomMarkerVisuals() {
     if (!customMarkerLayer) return;
 
     let inverseScale = 1 / scale;
-
-    customMarkerLayer.querySelectorAll('.custom-pin').forEach(function(marker) {
-        marker.style.transform = `scale(${inverseScale})`;
-    });
+    for (let i = 0; i < cachedCustomPins.length; i++) {
+        cachedCustomPins[i].style.transform = `scale(${inverseScale})`;
+    }
 }
 
 function notifyCustomPinsChanged() {
@@ -295,17 +322,17 @@ function notifyCustomPinsChanged() {
 
 function clearCustomPins() {
     customPins = [];
+    cachedCustomPins = [];
     if (customMarkerLayer) {
         customMarkerLayer.innerHTML = '';
     }
 }
 
 function setCustomPinsVisibility(visible) {
-    if (!customMarkerLayer) return;
-
-    customMarkerLayer.querySelectorAll('.custom-pin').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    let display = visible ? 'block' : 'none';
+    for (let i = 0; i < cachedCustomPins.length; i++) {
+        cachedCustomPins[i].style.display = display;
+    }
 }
 
 function setCustomPinsMode(enabled) {
@@ -335,6 +362,7 @@ function setCustomPins(pins) {
         renderCustomPin(entry);
     }
 
+    cacheCustomPins();
     updateCustomMarkerVisuals();
     setCustomPinsVisibility(customPinsEnabled);
 }
@@ -362,6 +390,7 @@ function addCustomPinAtNormalized(normalizedX, normalizedY) {
 
     customPins.push(pin);
     renderCustomPin(pin);
+    cacheCustomPins();
     updateCustomMarkerVisuals();
     notifyCustomPinsChanged();
 }
@@ -371,10 +400,12 @@ function removeCustomPinById(pinId) {
         return pin.id !== pinId;
     });
 
-    if (!customMarkerLayer) return;
-
-    let marker = customMarkerLayer.querySelector('[data-pin-id="' + pinId + '"]');
-    if (marker) marker.remove();
+    for (let i = cachedCustomPins.length - 1; i >= 0; i--) {
+        if (cachedCustomPins[i].dataset.pinId === pinId) {
+            cachedCustomPins[i].remove();
+            cachedCustomPins.splice(i, 1);
+        }
+    }
 
     notifyCustomPinsChanged();
 }
@@ -405,51 +436,59 @@ function renderCustomPin(pin) {
 }
 
 function setExtractFactionVisibility(faction, visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="extract"][data-faction="' + faction + '"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    let display = visible ? 'block' : 'none';
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
+        if (marker.dataset.markerType === 'extract' && marker.dataset.faction === faction)
+            marker.style.display = display;
+    }
 }
 
 function setTransitVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="transit"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('transit', visible);
 }
 
 function setSpawnVisibility(spawnType, visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="' + spawnType + '"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility(spawnType, visible);
 }
 
 function setLabelVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="label"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('label', visible);
 }
 
 function setQuestVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="quest"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('quest', visible);
+}
+
+function setMarkerTypeVisibility(markerType, visible) {
+    let display = visible ? 'block' : 'none';
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        if (cachedMapMarkers[i].dataset.markerType === markerType)
+            cachedMapMarkers[i].style.display = display;
+    }
 }
 
 function setQuestCategoryVisibility(category, visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="quest"][data-quest-category="' + category + '"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    let display = visible ? 'block' : 'none';
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
+        if (marker.dataset.markerType === 'quest' && marker.dataset.questCategory === category)
+            marker.style.display = display;
+    }
 }
 
 function setQuestNamesVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="quest"] .markerLabel').forEach(function(label) {
-        label.style.display = visible ? 'block' : 'none';
-    });
+    let display = visible ? 'block' : 'none';
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
+        if (marker.dataset.markerType !== 'quest') continue;
+        let label = marker.querySelector('.markerLabel');
+        if (label) label.style.display = display;
+    }
 }
 
 function setHazardVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="hazard"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('hazard', visible);
 }
 
 function setHazardZoneVisibility(visible) {
@@ -461,22 +500,17 @@ function setHazardZoneVisibility(visible) {
 }
 
 function setSwitchVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="switch"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('switch', visible);
 }
 
 function setBtrStopVisibility(visible) {
-    document.querySelectorAll('.mapMarker[data-marker-type="btr-stop"]').forEach(function(marker) {
-        marker.style.display = visible ? 'block' : 'none';
-    });
+    setMarkerTypeVisibility('btr-stop', visible);
 }
 
 let markerSearchQuery = '';
 let questFilterState = { questNames: [], trader: '' };
 
 function applyMarkerSearch(query) {
-    console.log(`Applying marker search with query: "${query}"`);
     markerSearchQuery = (query || '').trim();
     refreshMarkerSearchHighlight();
 }
@@ -486,15 +520,16 @@ function refreshMarkerSearchHighlight() {
         ? markerSearchQuery.toLowerCase().split(',').map(function(s) { return s.trim(); }).filter(Boolean)
         : [];
 
-    document.querySelectorAll('.mapMarker').forEach(function(marker) {
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
         marker.classList.remove('search-dimmed', 'search-match');
-        if (terms.length === 0) return;
+        if (terms.length === 0) continue;
 
         let haystack = marker.dataset.searchText || '';
         let matched = terms.some(function(term) { return haystack.indexOf(term) >= 0; });
         marker.classList.toggle('search-match', matched);
         marker.classList.toggle('search-dimmed', !matched);
-    });
+    }
 
     if (hazardOutlineLayer) {
         hazardOutlineLayer.querySelectorAll('polygon[data-marker-type="hazard-zone"]').forEach(function(polygon) {
@@ -537,21 +572,23 @@ function refreshQuestFilterVisibility() {
             .map(function(name) { return String(name).trim().toLowerCase(); })
             .filter(Boolean)
         : [];
+    let questNameSet = new Set(questNames);
     let trader = (questFilterState.trader || '').trim().toLowerCase();
-    let hasFilter = questNames.length > 0 || (trader.length > 0 && trader !== 'all');
+    let hasFilter = questNameSet.size > 0 || (trader.length > 0 && trader !== 'all');
 
-    document.querySelectorAll('.mapMarker[data-marker-type="quest"]').forEach(function(marker) {
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
+        if (marker.dataset.markerType !== 'quest') continue;
+
         marker.classList.remove('quest-filter-hidden');
-        if (!hasFilter) return;
+        if (!hasFilter) continue;
 
         let markerQuestName = (marker.dataset.questName || '').toLowerCase();
-        let nameMatch = questNames.length === 0 || questNames.some(function(questName) {
-            return markerQuestName.indexOf(questName) >= 0;
-        });
+        let nameMatch = questNameSet.size === 0 || questNameSet.has(markerQuestName);
         let traderMatch = !trader || trader === 'all' ||
             (marker.dataset.questTrader || '').toLowerCase() === trader;
         marker.classList.toggle('quest-filter-hidden', !(nameMatch && traderMatch));
-    });
+    }
 }
 
 function applyMarkerFilters(filters) {
@@ -624,11 +661,12 @@ function refreshRaidExfilHighlights() {
     let active = raidExfilState.active === true;
     let useLegacyExtractNames = extractMatches.length === 0 && legacyExtractSet.size > 0;
 
-    document.querySelectorAll('.mapMarker').forEach(function(marker) {
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
         marker.classList.remove('raid-available', 'raid-dimmed');
 
         if (!active)
-            return;
+            continue;
 
         let markerType = marker.dataset.markerType;
         let markerName = normalizeRaidName(marker.dataset.markerName);
@@ -653,7 +691,7 @@ function refreshRaidExfilHighlights() {
         } else if (markerType === 'transit') {
             marker.classList.add('raid-dimmed');
         }
-    });
+    }
 }
 
 let mapLevelState = {
@@ -669,19 +707,22 @@ let mapLevelState = {
 function refreshMarkerLevelVisibility() {
     const extents = mapLevelState.levelExtents || [];
     if (extents.length === 0) {
-        document.querySelectorAll('.mapMarker.off-level').forEach(function(marker) {
-            marker.classList.remove('off-level');
-        });
+        for (let i = 0; i < cachedMapMarkers.length; i++) {
+            cachedMapMarkers[i].classList.remove('off-level');
+        }
         return;
     }
 
     const activeIds = new Set(mapLevelState.activeLevelIds || []);
 
-    document.querySelectorAll('.mapMarker[data-game-y]').forEach(function(marker) {
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        const marker = cachedMapMarkers[i];
+        if (marker.dataset.gameY == null) continue;
+
         const y = parseFloat(marker.dataset.gameY);
         if (Number.isNaN(y)) {
             marker.classList.remove('off-level');
-            return;
+            continue;
         }
 
         let onLevel = true;
@@ -704,7 +745,7 @@ function refreshMarkerLevelVisibility() {
         }
 
         marker.classList.toggle('off-level', !onLevel);
-    });
+    }
 }
 
 function setupMapLayerClasses(defaultLayerId, overlayLayerIds) {
@@ -786,24 +827,20 @@ function applyMapLevelState(state) {
 }
 
 function highlightLinkedSwitches(switchIds) {
-    document.querySelectorAll('.mapMarker[data-marker-type="switch"]').forEach(function(marker) {
-        marker.classList.remove('switch-linked');
-    });
+    let idSet = switchIds && switchIds.length ? new Set(switchIds) : null;
 
-    if (!switchIds || switchIds.length === 0) return;
+    for (let i = 0; i < cachedMapMarkers.length; i++) {
+        let marker = cachedMapMarkers[i];
+        if (marker.dataset.markerType !== 'switch') continue;
 
-    let idSet = new Set(switchIds);
-    document.querySelectorAll('.mapMarker[data-marker-type="switch"]').forEach(function(marker) {
-        if (idSet.has(marker.dataset.switchId)) {
-            marker.classList.add('switch-linked');
-        }
-    });
+        marker.classList.toggle(
+            'switch-linked',
+            !!(idSet && idSet.has(marker.dataset.switchId)));
+    }
 }
 
 function clearLinkedSwitchHighlights() {
-    document.querySelectorAll('.mapMarker.switch-linked').forEach(function(marker) {
-        marker.classList.remove('switch-linked');
-    });
+    highlightLinkedSwitches([]);
 }
 
 stage.addEventListener('wheel', function(e) {
@@ -824,6 +861,7 @@ stage.addEventListener('wheel', function(e) {
 
     scale = newScale;
     applyTransform();
+    refreshCounterScales();
 });
 
 stage.addEventListener('mousedown', function(e) {

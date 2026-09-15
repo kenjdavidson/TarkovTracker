@@ -32,16 +32,17 @@ public class MapDataService
     public void LoadAll()
     {
         LoadMapConfig();
-        LoadMapLevelsConfig();
-        LoadExtracts();
-        LoadTransits();
-        LoadSpawns();
-        LoadBossSpawns();
-        LoadLabels();
-        LoadQuestMarkers();
-        LoadHazards();
-        LoadSwitches();
-        LoadBtr();
+        Parallel.Invoke(
+            LoadMapLevelsConfig,
+            LoadExtracts,
+            LoadTransits,
+            LoadSpawns,
+            LoadBossSpawns,
+            LoadLabels,
+            LoadQuestMarkers,
+            LoadHazards,
+            LoadSwitches,
+            LoadBtr);
     }
 
     public const string CultistPriestNormalizedName = "cultist-priest";
@@ -60,11 +61,20 @@ public class MapDataService
 
     public static string NormalizeMapName(string name)
     {
-        return new string(
-            (name ?? "")
-                .Where(char.IsLetterOrDigit)
-                .Select(char.ToLowerInvariant)
-                .ToArray());
+        if (string.IsNullOrEmpty(name))
+            return string.Empty;
+
+        Span<char> buffer = stackalloc char[name.Length];
+        int length = 0;
+        foreach (char c in name)
+        {
+            if (!char.IsLetterOrDigit(c))
+                continue;
+
+            buffer[length++] = char.ToLowerInvariant(c);
+        }
+
+        return length == 0 ? string.Empty : new string(buffer[..length]);
     }
 
     public bool TryResolveMapConfig(string mapFileName, out MapConfig? config)

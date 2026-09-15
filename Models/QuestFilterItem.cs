@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+namespace TarkovTracker.Models;
+
 public class QuestFilterItem : INotifyPropertyChanged
 {
     private string _name = string.Empty;
@@ -12,11 +14,12 @@ public class QuestFilterItem : INotifyPropertyChanged
         get => _name;
         set
         {
-            if (_name != value)
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
+            if (_name == value)
+                return;
+
+            _name = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DisplayName));
         }
     }
 
@@ -25,11 +28,12 @@ public class QuestFilterItem : INotifyPropertyChanged
         get => _trader;
         set
         {
-            if (_trader != value)
-            {
-                _trader = value;
-                OnPropertyChanged();
-            }
+            if (_trader == value)
+                return;
+
+            _trader = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DisplayName));
         }
     }
 
@@ -38,15 +42,17 @@ public class QuestFilterItem : INotifyPropertyChanged
         get => _isSelected;
         set
         {
-            if (_isSelected != value)
-            {
-                _isSelected = value;
-                OnPropertyChanged();
-            }
+            if (_isSelected == value)
+                return;
+
+            _isSelected = value;
+            OnPropertyChanged();
         }
     }
-    
-    public string DisplayName => $"{Name} ({Trader})";
+
+    public string DisplayName => string.IsNullOrWhiteSpace(Trader)
+        ? Name
+        : $"{Name} ({Trader})";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
