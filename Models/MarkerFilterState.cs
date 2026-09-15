@@ -37,6 +37,9 @@ public class MarkerFilterState
     [JsonPropertyName("questObjectives")]
     public bool QuestObjectives { get; set; }
 
+    [JsonPropertyName("showQuestNames")]
+    public bool ShowQuestNames { get; set; }
+
     [JsonPropertyName("hazards")]
     public bool Hazards { get; set; }
 

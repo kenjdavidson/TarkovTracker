@@ -286,6 +286,11 @@ namespace TarkovTracker
             await OverlayMapView.ExecuteScriptAsync($"applyQuestFilters({questFilterJson});");
         }
 
+        public async Task ApplyShowQuestNamesAsync(bool showQuestNames)
+        {
+            await OverlayMapView.ExecuteScriptAsync($"setQuestNamesVisibility({showQuestNames.ToString().ToLower()});");
+        }
+
         public async Task SetCustomPinsAsync(string pinsJson)
         {
             if (string.IsNullOrWhiteSpace(pinsJson))
@@ -384,4 +389,4 @@ namespace TarkovTracker
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     }
-}
+}   

@@ -61,4 +61,9 @@ public class UserAppSettings
     /// hidden for this version only; a newer release prompts again.
     /// </summary>
     public string SkippedUpdateVersion { get; set; } = "";
+
+    /// <summary>
+    /// When true, quest names are displayed on the maps
+    /// </summary>
+    public bool ShowQuestNames { get; set; } = true;
 }

@@ -360,11 +360,25 @@
                                       IsReadOnly="True"
                                       Margin="0,0,0,8"
                                       SelectionChanged="QuestFilter_Changed"/>
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <Button Content="CLEAR FILTERS"
-                                    Style="{StaticResource TacticalSmallButton}"
-                                    HorizontalAlignment="Left"
-                                    Click="ClearSearchFilters_Click"/>
+                                <Button Grid.Column="0"
+                                        Content="CLEAR FILTERS"
+                                        Style="{StaticResource TacticalSmallButton}"
+                                        HorizontalAlignment="Left"
+                                        Click="ClearSearchFilters_Click"/>
+                                <CheckBox x:Name="ShowQuestNamesCheckBox"
+                                          Grid.Column="1"
+                                          VerticalAlignment="Center"                                          
+                                          Style="{StaticResource TacticalSettingsCheckBox}"
+                                          Content="Show Quest Names"
+                                          Checked="ShowQuestNamesCheckBox_Changed"
+                                          Unchecked="ShowQuestNamesCheckBox_Changed"/>                                        
+                            </Grid>
                         </StackPanel>
                     </Border>
 

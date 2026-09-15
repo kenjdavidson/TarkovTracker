@@ -440,6 +440,12 @@ function setQuestCategoryVisibility(category, visible) {
     });
 }
 
+function setQuestNamesVisibility(visible) {
+    document.querySelectorAll('.mapMarker[data-marker-type="quest"] .markerLabel').forEach(function(label) {
+        label.style.display = visible ? 'block' : 'none';
+    });
+}
+
 function setHazardVisibility(visible) {
     document.querySelectorAll('.mapMarker[data-marker-type="hazard"]').forEach(function(marker) {
         marker.style.display = visible ? 'block' : 'none';
@@ -562,6 +568,7 @@ function applyMarkerFilters(filters) {
     setLabelVisibility(!!filters.labels);
     setQuestCategoryVisibility('item', !!filters.questItems);
     setQuestCategoryVisibility('objective', !!filters.questObjectives);
+    setQuestNamesVisibility(!!filters.showQuestNames);
     setHazardVisibility(!!filters.hazards);
     setHazardZoneVisibility(!!filters.hazardZones);
     setSwitchVisibility(!!filters.switches);
