@@ -35,7 +35,7 @@ $layers = @(
 )
 
 $wc = New-Object System.Net.WebClient
-$wc.Headers.Add("User-Agent", "SayserTarkovTracker/2.8.1")
+$wc.Headers.Add("User-Agent", "SayserTarkovTracker/2.8.2")
 
 foreach ($layer in $layers) {
     $pngPath = Join-Path $outDir "$($layer.folder).png"

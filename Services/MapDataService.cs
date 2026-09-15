@@ -8,7 +8,8 @@ public class MapDataService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private readonly string _configDir;
+    private readonly string _bundledConfigDir;
+    private readonly string _overlayConfigDir;
 
     public Dictionary<string, MapConfig> MapConfigs { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<ExtractInfo>> ExtractsByMapName { get; } = new();
@@ -26,8 +27,11 @@ public class MapDataService
 
     public MapDataService(string? baseDirectory = null)
     {
-        _configDir = Path.Combine(baseDirectory ?? AppDomain.CurrentDomain.BaseDirectory, "Config");
+        _bundledConfigDir = Path.Combine(baseDirectory ?? AppDomain.CurrentDomain.BaseDirectory, "Config");
+        _overlayConfigDir = AppInfo.OverlayConfigDirectory;
     }
+
+    public string OverlayConfigDirectory => _overlayConfigDir;
 
     public void LoadAll()
     {
@@ -113,7 +117,28 @@ public class MapDataService
         return null;
     }
 
-    private string ConfigPath(string fileName) => Path.Combine(_configDir, fileName);
+    private string ConfigPath(string fileName)
+    {
+        string overlayPath = Path.Combine(_overlayConfigDir, fileName);
+        if (File.Exists(overlayPath))
+            return overlayPath;
+
+        return Path.Combine(_bundledConfigDir, fileName);
+    }
+
+    private static IEnumerable<string> GetSharedMapAliases(string mapKey)
+    {
+        string normalizedKey = NormalizeMapName(mapKey);
+
+        return normalizedKey switch
+        {
+            "thelab" or "lab" => new[] { "thelab", "lab" },
+            "groundzero" or "groundzero21" => new[] { "groundzero", "groundzero21" },
+            "labyrinth" or "thelabyrinth" => new[] { "labyrinth", "thelabyrinth" },
+            "nightfactory" => new[] { "factory" },
+            _ => Array.Empty<string>()
+        };
+    }
 
     private void LoadMapConfig()
     {
@@ -228,7 +253,25 @@ public class MapDataService
             if (string.IsNullOrWhiteSpace(map.Name))
                 continue;
 
-            ExtractsByMapName[NormalizeMapName(map.Name)] = map.Extracts ?? new List<ExtractInfo>();
+            RegisterNamedList(ExtractsByMapName, map.Name, map.Extracts ?? new List<ExtractInfo>());
+        }
+    }
+
+    private static void RegisterNamedList<T>(
+        Dictionary<string, List<T>> target,
+        string mapName,
+        List<T> items)
+    {
+        if (string.IsNullOrWhiteSpace(mapName))
+            return;
+
+        string normalized = NormalizeMapName(mapName);
+        target[normalized] = items;
+
+        foreach (string alias in GetSharedMapAliases(normalized))
+        {
+            if (!target.ContainsKey(alias))
+                target[alias] = items;
         }
     }
 
@@ -252,7 +295,7 @@ public class MapDataService
             if (string.IsNullOrWhiteSpace(map.Name))
                 continue;
 
-            TransitsByMapName[NormalizeMapName(map.Name)] = map.Transits ?? new List<TransitInfo>();
+            RegisterNamedList(TransitsByMapName, map.Name, map.Transits ?? new List<TransitInfo>());
         }
     }
 
@@ -276,7 +319,7 @@ public class MapDataService
             if (string.IsNullOrWhiteSpace(map.Name))
                 continue;
 
-            SpawnsByMapName[NormalizeMapName(map.Name)] = map.Spawns ?? new List<SpawnInfo>();
+            RegisterNamedList(SpawnsByMapName, map.Name, map.Spawns ?? new List<SpawnInfo>());
         }
 
         MergeSpawnMapSources();
@@ -385,18 +428,8 @@ public class MapDataService
         }
     }
 
-    private static IEnumerable<string> GetBossSpawnMapAliases(string mapKey)
-    {
-        string normalizedKey = NormalizeMapName(mapKey);
-
-        return normalizedKey switch
-        {
-            "thelab" or "lab" => new[] { "thelab", "lab" },
-            "groundzero" or "groundzero21" => new[] { "groundzero", "groundzero21" },
-            "labyrinth" or "thelabyrinth" => new[] { "labyrinth", "thelabyrinth" },
-            _ => Array.Empty<string>()
-        };
-    }
+    private static IEnumerable<string> GetBossSpawnMapAliases(string mapKey) =>
+        GetSharedMapAliases(mapKey);
 
     private void LoadLabels()
     {
@@ -471,6 +504,12 @@ public class MapDataService
 
                 QuestMarkersByMapName[mapKey].Add(questMarker);
             }
+
+            foreach (string alias in GetSharedMapAliases(mapKey))
+            {
+                if (!QuestMarkersByMapName.ContainsKey(alias))
+                    QuestMarkersByMapName[alias] = QuestMarkersByMapName[mapKey];
+            }
         }
     }
 
@@ -491,7 +530,7 @@ public class MapDataService
             if (string.IsNullOrWhiteSpace(map.Name))
                 continue;
 
-            HazardsByMapName[NormalizeMapName(map.Name)] = map.Hazards ?? new List<HazardInfo>();
+            RegisterNamedList(HazardsByMapName, map.Name, map.Hazards ?? new List<HazardInfo>());
         }
     }
 
@@ -512,7 +551,7 @@ public class MapDataService
             if (string.IsNullOrWhiteSpace(map.Name))
                 continue;
 
-            SwitchesByMapName[NormalizeMapName(map.Name)] = map.Switches ?? new List<MapSwitchInfo>();
+            RegisterNamedList(SwitchesByMapName, map.Name, map.Switches ?? new List<MapSwitchInfo>());
         }
     }
 

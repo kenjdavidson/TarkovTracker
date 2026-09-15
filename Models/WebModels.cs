@@ -87,6 +87,21 @@ public class WebMapMarker
 
     [JsonPropertyName("extractId")]
     public string ExtractId { get; set; } = "";
+
+    [JsonPropertyName("keys")]
+    public string Keys { get; set; } = "";
+
+    [JsonPropertyName("requirements")]
+    public List<string> Requirements { get; set; } = new();
+
+    [JsonPropertyName("extractSwitches")]
+    public List<string> ExtractSwitches { get; set; } = new();
+
+    [JsonPropertyName("wikiUrl")]
+    public string WikiUrl { get; set; } = "";
+
+    [JsonPropertyName("tarkovDevUrl")]
+    public string TarkovDevUrl { get; set; } = "";
 }
 
 public class WebMapOutlinePoint
@@ -138,4 +153,19 @@ public class WebMarkerClickMessage
 
     [JsonPropertyName("linkedSwitchIds")]
     public List<string> LinkedSwitchIds { get; set; } = new();
+
+    [JsonPropertyName("keys")]
+    public string Keys { get; set; } = "";
+
+    [JsonPropertyName("requirements")]
+    public List<string> Requirements { get; set; } = new();
+
+    [JsonPropertyName("extractSwitches")]
+    public List<string> ExtractSwitches { get; set; } = new();
+
+    [JsonPropertyName("wikiUrl")]
+    public string WikiUrl { get; set; } = "";
+
+    [JsonPropertyName("tarkovDevUrl")]
+    public string TarkovDevUrl { get; set; } = "";
 }

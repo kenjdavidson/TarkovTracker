@@ -141,6 +141,27 @@
                            TextWrapping="Wrap"
                            Margin="0,0,0,16"/>
 
+                <!-- Map data -->
+                <TextBlock Text="MAP DATA" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
+                <TextBlock Text="Rebuild extracts, quests, spawns, bosses, transits, and switches from json.tarkov.dev. SVG maps and labels stay as shipped."
+                           Style="{StaticResource TacticalBody}"
+                           FontSize="10"
+                           Foreground="{StaticResource TacticalTextMutedBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,8"/>
+
+                <Button x:Name="RefreshMapDataButton"
+                        Content="REFRESH FROM TARKOV.DEV"
+                        Style="{StaticResource TacticalButton}"
+                        Margin="0,0,0,4"
+                        Click="RefreshMapData_Click"/>
+                <TextBlock x:Name="MapDataRefreshStatusText"
+                           FontFamily="{StaticResource TacticalMonoFont}"
+                           FontSize="10"
+                           Foreground="{StaticResource TacticalTextMutedBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,16"/>
+
                 <!-- Map actions -->
                 <TextBlock Text="MAP ACTIONS" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
                 <Button Content="CLEAR RAID EXFIL HIGHLIGHTS"

@@ -509,8 +509,39 @@ namespace TarkovTracker
                 });
             }
 
-            StatusText.Text =
-                $"{svgFiles.Count} maps loaded. Extract maps: {_mapData.ExtractsByMapName.Count}. Transit maps: {_mapData.TransitsByMapName.Count}. Spawn maps: {_mapData.SpawnsByMapName.Count}. Boss spawn maps: {_mapData.BossSpawnMarkersByMapName.Count}. Label maps: {_mapData.LabelsByMapName.Count}. Quest maps: {_mapData.QuestMarkersByMapName.Count}. Hazard maps: {_mapData.HazardsByMapName.Count}. Switch maps: {_mapData.SwitchesByMapName.Count}.";
+            StatusText.Text = BuildLoadedDataStatus(svgFiles.Count);
+        }
+
+        private string BuildLoadedDataStatus(int? mapCount = null)
+        {
+            string mapsPrefix = mapCount.HasValue
+                ? $"{mapCount.Value} maps loaded. "
+                : "";
+
+            return
+                $"{mapsPrefix}Extract maps: {_mapData.ExtractsByMapName.Count}. Transit maps: {_mapData.TransitsByMapName.Count}. Spawn maps: {_mapData.SpawnsByMapName.Count}. Boss spawn maps: {_mapData.BossSpawnMarkersByMapName.Count}. Label maps: {_mapData.LabelsByMapName.Count}. Quest maps: {_mapData.QuestMarkersByMapName.Count}. Hazard maps: {_mapData.HazardsByMapName.Count}. Switch maps: {_mapData.SwitchesByMapName.Count}.";
+        }
+
+        internal MapDataRefreshResult? LastMapDataRefresh =>
+            TarkovDevMapRefreshService.TryReadLastRefresh(_mapData.OverlayConfigDirectory);
+
+        internal async Task<MapDataRefreshResult> RefreshMapDataFromTarkovDevAsync(
+            IProgress<string>? progress,
+            CancellationToken cancellationToken = default)
+        {
+            MapDataRefreshResult result = await TarkovDevMapRefreshService.RefreshAsync(
+                _mapData.OverlayConfigDirectory,
+                progress,
+                cancellationToken);
+
+            _mapData.LoadAll();
+
+            if (MapComboBox.SelectedItem is ComboBoxItem)
+                await LoadSelectedMapAsync();
+            else
+                StatusText.Text = BuildLoadedDataStatus();
+
+            return result;
         }
 
         private async void MapComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -652,33 +683,7 @@ namespace TarkovTracker
 
                 SelectedMarkerNameText.Text = marker.Name;
 
-                var details = new List<string>
-                {
-                    $"Type: {marker.MarkerType}"
-                };
-
-                if (!string.IsNullOrWhiteSpace(marker.Faction))
-                    details.Add($"Faction/Side: {marker.Faction}");
-
-                if (!string.IsNullOrWhiteSpace(marker.ZoneName))
-                    details.Add($"Zone: {marker.ZoneName}");
-
-                if (!string.IsNullOrWhiteSpace(marker.Categories))
-                    details.Add($"Categories: {marker.Categories}");
-
-                if (!string.IsNullOrWhiteSpace(marker.Conditions))
-                    details.Add($"Conditions: {marker.Conditions}");
-
-                if (!string.IsNullOrWhiteSpace(marker.Position))
-                    details.Add($"Position: {marker.Position}");
-
-                if (string.Equals(marker.MarkerType, "extract", StringComparison.OrdinalIgnoreCase) &&
-                    marker.LinkedSwitchIds is { Count: > 0 })
-                {
-                    details.Add("Linked switches highlighted on map");
-                }
-
-                SelectedMarkerDetailsText.Text = string.Join(Environment.NewLine, details);
+                SelectedMarkerDetailsText.Text = string.Join(Environment.NewLine, BuildSelectedMarkerDetails(marker));
 
                 if (string.Equals(marker.MarkerType, "quest", StringComparison.OrdinalIgnoreCase))
                 {
@@ -690,6 +695,18 @@ namespace TarkovTracker
                         ? TarkovDevLinks.BuildTaskUrlFromSlug(marker.QuestSlug)
                         : TarkovDevLinks.BuildTaskUrl(questDisplayName);
                     _lastQuestWikiUrl = TarkovDevLinks.BuildWikiUrl(questDisplayName);
+                    OpenQuestTarkovDevButton.Content = "OPEN ON TARKOV.DEV";
+                    OpenQuestWikiButton.Content = "OPEN ON WIKI";
+                    QuestLinkPanel.Visibility = Visibility.Visible;
+                }
+                else if (string.Equals(marker.MarkerType, "extract", StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastQuestTarkovDevUrl = FirstAllowedUrl(marker.TarkovDevUrl, TarkovDevLinks.BuildMapUrl(_currentMapDisplayName ?? ""));
+                    _lastQuestWikiUrl = FirstAllowedUrl(
+                        marker.WikiUrl,
+                        TarkovDevLinks.BuildExtractWikiUrl(_currentMapDisplayName ?? "", marker.Name));
+                    OpenQuestTarkovDevButton.Content = "OPEN MAP ON TARKOV.DEV";
+                    OpenQuestWikiButton.Content = "OPEN EXTRACT ON WIKI";
                     QuestLinkPanel.Visibility = Visibility.Visible;
                 }
                 else
@@ -1374,7 +1391,7 @@ namespace TarkovTracker
                 {
                     var converted = ConvertGameToNormalizedMap(extract.Position!.X, extract.Position.Z);
                     string faction = NormalizeFaction(extract.Faction);
-                    string conditions = GetExtractConditions(extract);
+                    ExtractCardDetails card = BuildExtractCard(extract, faction);
 
                     markers.Add(new WebMapMarker
                     {
@@ -1383,10 +1400,15 @@ namespace TarkovTracker
                         Faction = faction,
                         ExtractId = extract.Id,
                         CssClass = "extract-" + faction,
-                        Tooltip = $"{extract.Name} ({faction.ToUpperInvariant()} Extract)\nConditions: {conditions}",
+                        Tooltip = card.Tooltip,
                         ZoneName = "",
                         Categories = "",
-                        Conditions = conditions,
+                        Conditions = card.Summary,
+                        Keys = card.RequiredItem,
+                        Requirements = card.Requirements,
+                        ExtractSwitches = card.Switches,
+                        WikiUrl = TarkovDevLinks.BuildExtractWikiUrl(_currentMapDisplayName ?? "", extract.Name),
+                        TarkovDevUrl = TarkovDevLinks.BuildMapUrl(_currentMapDisplayName ?? ""),
                         Position = $"X={extract.Position.X:0.##}, Y={extract.Position.Y:0.##}, Z={extract.Position.Z:0.##}",
                         NormalizedX = converted.normalizedX,
                         NormalizedY = converted.normalizedY,
@@ -2064,68 +2086,157 @@ namespace TarkovTracker
             return label.Bottom ?? label.Top;
         }
 
-        private string GetExtractConditions(ExtractInfo extract)
+        private sealed class ExtractCardDetails
         {
-            var conditions = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(extract.Conditions))
-                conditions.Add(extract.Conditions);
-
-            if (extract.Requirements != null && extract.Requirements.Count > 0)
-                conditions.AddRange(extract.Requirements.Where(r => !string.IsNullOrWhiteSpace(r)));
-
-            if (extract.Switches != null && extract.Switches.Count > 0)
-            {
-                var switchNames = extract.Switches
-                    .Select(s => string.IsNullOrWhiteSpace(s.Name) ? s.Id : s.Name)
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .ToList();
-
-                if (switchNames.Count > 0)
-                    conditions.Add("Requires switch: " + string.Join(", ", switchNames));
-            }
-
-            string? transferItemName = GetNameFromJsonElement(extract.TransferItem);
-
-            if (!string.IsNullOrWhiteSpace(transferItemName))
-                conditions.Add("Requires item: " + transferItemName);
-
-            return conditions.Count == 0
-                ? "None"
-                : string.Join("; ", conditions.Distinct());
+            public string RequiredItem { get; init; } = "";
+            public List<string> Switches { get; init; } = new();
+            public List<string> Requirements { get; init; } = new();
+            public string Summary { get; init; } = "None";
+            public string Tooltip { get; init; } = "";
         }
 
-        private string? GetNameFromJsonElement(JsonElement? element)
+        private ExtractCardDetails BuildExtractCard(ExtractInfo extract, string faction)
         {
-            if (element == null)
-                return null;
+            string factionLabel = string.IsNullOrWhiteSpace(faction)
+                ? "SHARED"
+                : faction.ToUpperInvariant();
 
-            JsonElement value = element.Value;
+            string requiredItem = FormatRequiredItem(extract.TransferItem);
+            var switches = (extract.Switches ?? new List<ExtractSwitch>())
+                .Select(sw => string.IsNullOrWhiteSpace(sw.Name) ? sw.Id : sw.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            if (value.ValueKind == JsonValueKind.Object)
+            var requirements = new List<string>();
+            if (!string.IsNullOrWhiteSpace(extract.Conditions))
+                requirements.Add(extract.Conditions.Trim());
+
+            foreach (string requirement in extract.Requirements ?? new List<string>())
             {
-                if (value.TryGetProperty("name", out JsonElement nameElement) &&
-                    nameElement.ValueKind == JsonValueKind.String)
-                {
-                    return nameElement.GetString();
-                }
-
-                foreach (var property in value.EnumerateObject())
-                {
-                    string? found = GetNameFromJsonElement(property.Value);
-                    if (!string.IsNullOrWhiteSpace(found))
-                        return found;
-                }
+                if (string.IsNullOrWhiteSpace(requirement))
+                    continue;
+                if (IsRedundantExtractRequirement(requirement, requiredItem, switches))
+                    continue;
+                requirements.Add(requirement.Trim());
             }
 
-            if (value.ValueKind == JsonValueKind.Array)
+            var summaryParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(requiredItem))
+                summaryParts.Add("Item: " + requiredItem);
+            if (switches.Count > 0)
+                summaryParts.Add("Switch: " + string.Join(", ", switches));
+            summaryParts.AddRange(requirements);
+
+            string summary = summaryParts.Count == 0 ? "None" : string.Join("; ", summaryParts.Distinct());
+
+            var tooltipLines = new List<string>
             {
-                foreach (var item in value.EnumerateArray())
-                {
-                    string? found = GetNameFromJsonElement(item);
-                    if (!string.IsNullOrWhiteSpace(found))
-                        return found;
-                }
+                $"{extract.Name} ({factionLabel} extract)",
+                "Faction: " + factionLabel,
+                "Required item: " + (string.IsNullOrWhiteSpace(requiredItem) ? "None" : requiredItem)
+            };
+            tooltipLines.Add("Switches: " + (switches.Count == 0 ? "None" : string.Join(", ", switches)));
+            tooltipLines.Add("Requirements: " + (requirements.Count == 0 ? "None" : string.Join("; ", requirements)));
+
+            return new ExtractCardDetails
+            {
+                RequiredItem = requiredItem,
+                Switches = switches,
+                Requirements = requirements,
+                Summary = summary,
+                Tooltip = string.Join('\n', tooltipLines)
+            };
+        }
+
+        private static string FormatRequiredItem(ExtractTransferItem? transferItem)
+        {
+            string? name = transferItem?.Item?.Name;
+            if (string.IsNullOrWhiteSpace(name))
+                return "";
+
+            double count = transferItem!.Count > 0 ? transferItem.Count : transferItem.Quantity;
+            return count > 1 ? $"{name} ×{count:0}" : name;
+        }
+
+        private static bool IsRedundantExtractRequirement(
+            string requirement,
+            string requiredItem,
+            List<string> switches)
+        {
+            if (!string.IsNullOrWhiteSpace(requiredItem) &&
+                requirement.Contains(requiredItem, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return switches.Any(name =>
+                requirement.Contains(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private List<string> BuildSelectedMarkerDetails(WebMarkerClickMessage marker)
+        {
+            var details = new List<string>();
+            bool isExtract = string.Equals(marker.MarkerType, "extract", StringComparison.OrdinalIgnoreCase);
+
+            if (isExtract)
+            {
+                details.Add("Faction: " + FormatFactionLabel(marker.Faction));
+                details.Add("Required item / key: " +
+                    (string.IsNullOrWhiteSpace(marker.Keys) ? "None" : marker.Keys));
+                details.Add("Switches: " +
+                    (marker.ExtractSwitches is { Count: > 0 }
+                        ? string.Join(", ", marker.ExtractSwitches)
+                        : "None"));
+                details.Add("Requirements: " +
+                    (marker.Requirements is { Count: > 0 }
+                        ? string.Join("; ", marker.Requirements)
+                        : "None"));
+            }
+            else
+            {
+                details.Add($"Type: {marker.MarkerType}");
+
+                if (!string.IsNullOrWhiteSpace(marker.Faction))
+                    details.Add($"Faction/Side: {marker.Faction}");
+
+                if (!string.IsNullOrWhiteSpace(marker.ZoneName))
+                    details.Add($"Zone: {marker.ZoneName}");
+
+                if (!string.IsNullOrWhiteSpace(marker.Categories))
+                    details.Add($"Categories: {marker.Categories}");
+
+                if (!string.IsNullOrWhiteSpace(marker.Conditions))
+                    details.Add($"Conditions: {marker.Conditions}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(marker.Position))
+                details.Add($"Position: {marker.Position}");
+
+            if (isExtract && marker.LinkedSwitchIds is { Count: > 0 })
+                details.Add("Linked switches highlighted on map");
+
+            return details;
+        }
+
+        private static string FormatFactionLabel(string faction)
+        {
+            string normalized = (faction ?? "").Trim().ToLowerInvariant();
+            return normalized switch
+            {
+                "pmc" => "PMC",
+                "scav" => "Scav",
+                "shared" => "Shared",
+                _ => string.IsNullOrWhiteSpace(faction) ? "Shared" : faction.ToUpperInvariant()
+            };
+        }
+
+        private string? FirstAllowedUrl(params string?[] urls)
+        {
+            foreach (string? url in urls)
+            {
+                if (WebViewSecurity.IsAllowedHttpsUrl(url, AllowedExternalBrowserHosts))
+                    return url;
             }
 
             return null;

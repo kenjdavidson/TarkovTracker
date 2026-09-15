@@ -75,6 +75,22 @@ public partial class SettingsWindow : Window
         AboutDataCreditText.Text = AppInfo.DataCredit;
         AboutDisclaimerText.Text = AppInfo.Disclaimer;
         UpdateStatusText.Text = "";
+        ShowLastMapDataRefresh();
+    }
+
+    private void ShowLastMapDataRefresh()
+    {
+        MapDataRefreshResult? last = _owner.LastMapDataRefresh;
+        if (last == null || !last.Succeeded)
+        {
+            MapDataRefreshStatusText.Text = "Using shipped map data until you refresh.";
+            MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTextMutedBrush");
+            return;
+        }
+
+        MapDataRefreshStatusText.Text =
+            $"Last refresh {last.RefreshedUtc.ToLocalTime():g}: {last.QuestMarkers} quest markers, {last.ExtractMaps} extract maps.";
+        MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
     }
 
     private void UpdateResolutionTextBoxesFromPreset(string preset)
@@ -184,6 +200,47 @@ public partial class SettingsWindow : Window
             return;
 
         _owner.ApplyCheckForUpdatesOnStartup(CheckForUpdatesOnStartupCheckBox.IsChecked == true);
+    }
+
+    private async void RefreshMapData_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshMapDataButton.IsEnabled = false;
+        MapDataRefreshStatusText.Text = "DOWNLOADING…";
+        MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTextMutedBrush");
+
+        try
+        {
+            var progress = new Progress<string>(status =>
+            {
+                MapDataRefreshStatusText.Text = status.ToUpperInvariant();
+            });
+
+            MapDataRefreshResult result = await _owner.RefreshMapDataFromTarkovDevAsync(progress);
+
+            MapDataRefreshStatusText.Text = result.Message.ToUpperInvariant();
+            MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
+            MessageBox.Show(
+                this,
+                result.Message + "\n\nThe current map markers were reloaded.",
+                "Map Data Updated",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MapDataRefreshStatusText.Text = "REFRESH FAILED";
+            MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalRedBrush");
+            MessageBox.Show(
+                this,
+                "Could not refresh map data from json.tarkov.dev.\n\n" + ex.Message,
+                "Map Data Refresh Failed",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            RefreshMapDataButton.IsEnabled = true;
+        }
     }
 
     private void ClearRaidExfilHighlights_Click(object sender, RoutedEventArgs e)

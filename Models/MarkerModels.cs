@@ -46,10 +46,31 @@ public class ExtractInfo
     public List<ExtractSwitch> Switches { get; set; } = new();
 
     [JsonPropertyName("transferItem")]
-    public JsonElement? TransferItem { get; set; }
+    public ExtractTransferItem? TransferItem { get; set; }
 
     [JsonPropertyName("position")]
     public MapPosition? Position { get; set; }
+}
+
+public class ExtractTransferItem
+{
+    [JsonPropertyName("item")]
+    public ExtractTransferItemRef? Item { get; set; }
+
+    [JsonPropertyName("count")]
+    public double Count { get; set; }
+
+    [JsonPropertyName("quantity")]
+    public double Quantity { get; set; }
+}
+
+public class ExtractTransferItemRef
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
 }
 
 public class ExtractSwitch

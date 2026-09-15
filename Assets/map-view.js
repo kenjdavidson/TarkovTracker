@@ -143,7 +143,10 @@ function buildMarkerSearchText(m) {
         m.questItemShortName,
         m.categories,
         m.zoneName,
-        m.conditions
+        m.conditions,
+        m.keys,
+        Array.isArray(m.requirements) ? m.requirements.join(' ') : '',
+        Array.isArray(m.extractSwitches) ? m.extractSwitches.join(' ') : ''
     ].filter(Boolean).join(' ').toLowerCase();
 }
 
@@ -259,6 +262,11 @@ function addMapMarkers(markers) {
                     zoneName: m.zoneName || '',
                     categories: m.categories || '',
                     conditions: m.conditions || '',
+                    keys: m.keys || '',
+                    requirements: Array.isArray(m.requirements) ? m.requirements : [],
+                    extractSwitches: Array.isArray(m.extractSwitches) ? m.extractSwitches : [],
+                    wikiUrl: m.wikiUrl || '',
+                    tarkovDevUrl: m.tarkovDevUrl || '',
                     position: m.position || '',
                     questSlug: m.questSlug || '',
                     linkedSwitchIds: m.linkedSwitchIds || []

@@ -1,6 +1,6 @@
 # TarkovTracker maintenance scripts
 
-Scripts in this folder refresh map data from tarkov.dev. They are **not** used at runtime.
+Scripts in this folder refresh the shipped `Config/` files from tarkov.dev. They are **not** used at runtime. In the app, **SETTINGS → REFRESH FROM TARKOV.DEV** updates the Config folder next to the exe.
 
 ## Paths
 

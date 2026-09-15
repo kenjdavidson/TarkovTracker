@@ -6,7 +6,7 @@ namespace TarkovTracker.Models;
 public static class AppInfo
 {
     public const string ProductName = "SayserTarkovTracker";
-    public const string InterfaceVersion = "2.8.1";
+    public const string InterfaceVersion = "2.8.2";
 
     public const string GitHubOwner = "sayser";
     public const string GitHubRepo = "TarkovTracker";
@@ -64,4 +64,16 @@ public static class AppInfo
             return Path.GetFullPath(Path.Combine(baseDir, "settings.json"));
         }
     }
+
+    public static string PersistentDirectory
+    {
+        get
+        {
+            string? directory = Path.GetDirectoryName(SettingsFilePath);
+            return string.IsNullOrWhiteSpace(directory) ? "." : directory;
+        }
+    }
+
+    public static string OverlayConfigDirectory =>
+        Path.GetFullPath(Path.Combine(PersistentDirectory, "Config"));
 }

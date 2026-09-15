@@ -57,7 +57,7 @@ public class UserAppSettings
     public bool CheckForUpdatesOnStartup { get; set; } = true;
 
     /// <summary>
-    /// Release version the user chose to skip (e.g. "2.8.1"). The startup prompt stays
+    /// Release version the user chose to skip (e.g. "2.8.2"). The startup prompt stays
     /// hidden for this version only; a newer release prompts again.
     /// </summary>
     public string SkippedUpdateVersion { get; set; } = "";
