@@ -100,8 +100,8 @@ public class WebMapOutlinePoint
 
 public class WebQuestFilterPayload
 {
-    [JsonPropertyName("questName")]
-    public string QuestName { get; set; } = "";
+    [JsonPropertyName("questNames")]
+    public List<string> QuestNames { get; set; } = new();
 
     [JsonPropertyName("trader")]
     public string Trader { get; set; } = "all";

@@ -294,15 +294,70 @@
 
                             <TextBlock Text="QUEST NAME" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
                             <ComboBox x:Name="QuestNameFilterComboBox"
-                                      Style="{StaticResource TacticalComboBox}"
-                                      IsEditable="True"
-                                      Margin="0,0,0,8"
-                                      SelectionChanged="QuestFilter_Changed"
-                                      LostFocus="QuestFilter_Changed"/>
+                                    Style="{StaticResource TacticalComboBox}"
+                                    Tag="All Quests"
+                                    Margin="0,0,0,8"
+                                    HorizontalContentAlignment="Stretch">
+                                
+                                <ComboBox.Template>
+                                    <ControlTemplate TargetType="ComboBox">
+                                        <Grid SnapsToDevicePixels="True">
+                                            <!-- Dropdown Header ToggleButton using the resource style -->
+                                            <ToggleButton Style="{StaticResource TacticalToggleButton}"
+                                                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ClickMode="Press">
+                                                <TextBlock Text="{TemplateBinding Tag}"
+                                                        Foreground="{StaticResource TacticalAmberBrightBrush}"
+                                                        FontFamily="{StaticResource TacticalFont}"
+                                                        FontSize="12"
+                                                        FontWeight="SemiBold"
+                                                        VerticalAlignment="Center" />
+                                            </ToggleButton>
+
+                                            <!-- WPF Internal Popup Engine -->
+                                            <Popup x:Name="PART_Popup"
+                                                IsOpen="{TemplateBinding IsDropDownOpen}"
+                                                Placement="Bottom"
+                                                AllowsTransparency="True"
+                                                Focusable="False"
+                                                PopupAnimation="Slide">
+                                                <Border Background="#121212"
+                                                        BorderBrush="{StaticResource TacticalAmberBrush}"
+                                                        BorderThickness="1"
+                                                        MaxHeight="300"
+                                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                                    <ScrollViewer>
+                                                        <ItemsPresenter x:Name="ItemsPresenter" />
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ComboBox.Template>
+
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Focusable" Value="False" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding DisplayName}"
+                                                Style="{StaticResource TacticalComboBoxCheckbox}"
+                                                IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Checked="QuestFilter_Changed"
+                                                Unchecked="QuestFilter_Changed"
+                                                Margin="4,2"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
                             <TextBlock Text="TRADER" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
                             <ComboBox x:Name="QuestTraderFilterComboBox"
                                       Style="{StaticResource TacticalComboBox}"
+                                      IsEditable="True"
+                                      IsReadOnly="True"
                                       Margin="0,0,0,8"
                                       SelectionChanged="QuestFilter_Changed"/>
 

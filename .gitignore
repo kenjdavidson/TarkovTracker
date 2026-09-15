@@ -361,8 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
 # Local build transcripts
 build-log.txt
+
+# VSCode
+.vscode/
 
 # Local publish / test-build output
 dist/

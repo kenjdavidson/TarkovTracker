@@ -467,9 +467,10 @@ function setBtrStopVisibility(visible) {
 }
 
 let markerSearchQuery = '';
-let questFilterState = { questName: '', trader: '' };
+let questFilterState = { questNames: [], trader: '' };
 
 function applyMarkerSearch(query) {
+    console.log(`Applying marker search with query: "${query}"`);
     markerSearchQuery = (query || '').trim();
     refreshMarkerSearchHighlight();
 }
@@ -503,23 +504,44 @@ function refreshMarkerSearchHighlight() {
 }
 
 function applyQuestFilters(filters) {
+    let questNames = [];
+
+    if (filters && Array.isArray(filters.questNames)) {
+        questNames = filters.questNames
+            .map(function(name) { return String(name).trim(); })
+            .filter(Boolean);
+    } else if (filters && filters.questName) {
+        // Backward compatibility for legacy payloads.
+        questNames = String(filters.questName)
+            .split(',')
+            .map(function(name) { return name.trim(); })
+            .filter(Boolean);
+    }
+
     questFilterState = {
-        questName: (filters && filters.questName) ? String(filters.questName) : '',
+        questNames: questNames,
         trader: (filters && filters.trader) ? String(filters.trader) : ''
     };
     refreshQuestFilterVisibility();
 }
 
 function refreshQuestFilterVisibility() {
-    let questName = (questFilterState.questName || '').trim().toLowerCase();
+    let questNames = Array.isArray(questFilterState.questNames)
+        ? questFilterState.questNames
+            .map(function(name) { return String(name).trim().toLowerCase(); })
+            .filter(Boolean)
+        : [];
     let trader = (questFilterState.trader || '').trim().toLowerCase();
-    let hasFilter = questName.length > 0 || (trader.length > 0 && trader !== 'all');
+    let hasFilter = questNames.length > 0 || (trader.length > 0 && trader !== 'all');
 
     document.querySelectorAll('.mapMarker[data-marker-type="quest"]').forEach(function(marker) {
         marker.classList.remove('quest-filter-hidden');
         if (!hasFilter) return;
 
-        let nameMatch = !questName || (marker.dataset.questName || '').toLowerCase().indexOf(questName) >= 0;
+        let markerQuestName = (marker.dataset.questName || '').toLowerCase();
+        let nameMatch = questNames.length === 0 || questNames.some(function(questName) {
+            return markerQuestName.indexOf(questName) >= 0;
+        });
         let traderMatch = !trader || trader === 'all' ||
             (marker.dataset.questTrader || '').toLowerCase() === trader;
         marker.classList.toggle('quest-filter-hidden', !(nameMatch && traderMatch));
