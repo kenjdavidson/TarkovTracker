@@ -95,7 +95,7 @@ namespace TarkovTracker
         internal bool IsScreenshotParsingEnabled => _userSettings.ScreenshotParsingEnabled;
 
         internal double OverlayDefaultOpacityPercent =>
-            Math.Clamp(_userSettings.OverlayDefaultOpacityPercent, 20, 100);
+            Math.Clamp(_userSettings.OverlaySettings.OverlayDefaultOpacityPercent, 20, 100);
 
         internal bool OverlayCenterOnPlayer => _userSettings.OverlayCenterOnPlayer;
 
@@ -358,9 +358,9 @@ namespace TarkovTracker
 
         internal void ApplyOverlayDefaultOpacityPercent(double percent)
         {
-            _userSettings.OverlayDefaultOpacityPercent = Math.Clamp(percent, 20, 100);
+            _userSettings.OverlaySettings.OverlayDefaultOpacityPercent = Math.Clamp(percent, 20, 100);
               SaveUserSettings();
-            _overlayWindow?.ApplyDefaultOpacityPercent(_userSettings.OverlayDefaultOpacityPercent);
+            _overlayWindow?.ApplyDefaultOpacityPercent(_userSettings.OverlaySettings.OverlayDefaultOpacityPercent);
         }
 
         internal void ApplyOverlayCenterOnPlayer(bool enabled)
@@ -2856,7 +2856,7 @@ namespace TarkovTracker
             {
                 if (_overlayWindow == null)
                 {
-                    _overlayWindow = new OverlayWindow(_userSettings.OverlayDefaultOpacityPercent);
+                    _overlayWindow = new OverlayWindow(_userSettings.OverlaySettings);
                     _overlayWindow.Closed += (_, _) => _overlayWindow = null;
                     _overlayWindow.Show();
                 }

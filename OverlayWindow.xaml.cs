@@ -26,24 +26,58 @@ namespace TarkovTracker
         private string? _pendingMarkerSearchJson;
         private bool? _pendingShowQuestNames;
         private (double NormalizedX, double NormalizedY, double DirectionDegrees)? _pendingPlayerMarker;
-        private double _overlayOpacity = 0.80;
         private bool _suppressOpacitySliderRefresh;
+        private readonly OverlaySettings _overlaySettings;
 
-        public OverlayWindow(double defaultOpacityPercent = 80)
+        public OverlayWindow(OverlaySettings overlaySettings)
         {
             InitializeComponent();
-            ApplyDefaultOpacityPercent(defaultOpacityPercent);
+
+            _overlaySettings = overlaySettings;
+
+            Width = _overlaySettings.OverlayWidth;
+            Height = _overlaySettings.OverlayHeight;
+
+            if (_overlaySettings.OverlayLeft > 0 && _overlaySettings.OverlayTop > 0)
+            {
+                 Left = _overlaySettings.OverlayLeft;
+                Top = _overlaySettings.OverlayTop;   
+            }            
+
+            ApplyDefaultOpacityPercent(overlaySettings.OverlayDefaultOpacityPercent);
 
             Loaded += async (_, _) =>
             {
                 await ApplyOverlayOpacityAsync();
             };
+
+            SizeChanged += OverlayWindow_SizeChanged;
+            LocationChanged += OverlayWindow_LocationChanged;
+        }
+
+        private void OverlayWindow_LocationChanged(object? sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+                return;
+
+            _overlaySettings.OverlayLeft = Left;
+            _overlaySettings.OverlayTop = Top;
+        }
+
+        private void OverlayWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Don't update settings if the window is minimized
+            if (WindowState == WindowState.Minimized)
+                return;
+
+            // Save new dimensions
+            _overlaySettings.OverlayWidth = e.NewSize.Width;
+            _overlaySettings.OverlayHeight = e.NewSize.Height;
         }
 
         public void ApplyDefaultOpacityPercent(double percent)
         {
             percent = Math.Clamp(percent, 20, 100);
-            _overlayOpacity = percent / 100.0;
 
             _suppressOpacitySliderRefresh = true;
             OpacitySlider.Value = percent;
@@ -189,14 +223,20 @@ namespace TarkovTracker
 
         private async Task ApplyOverlayOpacityAsync()
         {
-            double panelOpacity = Math.Max(0.45, Math.Min(0.92, _overlayOpacity * 0.85 + 0.15));
+            // Convert 20..100 percentage down to 0.20..1.00 fraction for the WPF math
+            double normalizedFraction = _overlaySettings.OverlayDefaultOpacityPercent / 100.0;
+
+            // Compress the range so background panel stays readable (between 45% and 92% opacity)
+            double panelOpacity = Math.Max(0.45, Math.Min(0.92, normalizedFraction * 0.85 + 0.15));
+
+            // Apply ARGB background color to WPF border
             OverlayRootBorder.Background = new SolidColorBrush(Color.FromArgb(
                 (byte)(panelOpacity * 255), 0x1A, 0x1D, 0x18));
 
             if (!_webViewReady)
                 return;
 
-            string value = _overlayOpacity.ToString(CultureInfo.InvariantCulture);
+            string value = normalizedFraction.ToString(CultureInfo.InvariantCulture);        
             await OverlayMapView.ExecuteScriptAsync($"if (window.setOverlayMapOpacity) window.setOverlayMapOpacity({value});");
         }
 
@@ -355,12 +395,13 @@ namespace TarkovTracker
 
         private async void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_suppressOpacitySliderRefresh)
+            if (_suppressOpacitySliderRefresh || _overlaySettings == null)
                 return;
 
             try
             {
-                _overlayOpacity = Math.Max(0.05, Math.Min(1.0, e.NewValue / 100.0));
+                // Clamps the slider value between 20.0 and 100.0
+                _overlaySettings.OverlayDefaultOpacityPercent = Math.Round(Math.Max(20.0, Math.Min(100.0, e.NewValue)));
                 await ApplyOverlayOpacityAsync();
             }
             catch (Exception ex)
