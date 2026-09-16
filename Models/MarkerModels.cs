@@ -355,6 +355,57 @@ public class MapPosition
     public double Z { get; set; }
 }
 
+public class TarkovTrackedLootRoot
+{
+    [JsonPropertyName("schemaVersion")]
+    public int SchemaVersion { get; set; }
+
+    [JsonPropertyName("data")]
+    public TarkovTrackedLootData Data { get; set; } = new();
+}
+
+public class TarkovTrackedLootData
+{
+    [JsonPropertyName("maps")]
+    public List<TarkovTrackedLootMap> Maps { get; set; } = new();
+}
+
+public class TarkovTrackedLootMap
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("points")]
+    public List<TrackedLootPoint> Points { get; set; } = new();
+}
+
+public class TrackedLootPoint
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = "";
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("keyName")]
+    public string? KeyName { get; set; }
+
+    [JsonPropertyName("lockType")]
+    public string? LockType { get; set; }
+
+    [JsonPropertyName("needsPower")]
+    public bool NeedsPower { get; set; }
+
+    [JsonPropertyName("items")]
+    public List<string> Items { get; set; } = new();
+
+    [JsonPropertyName("position")]
+    public MapPosition? Position { get; set; }
+}
+
 public sealed class StringOrStringListJsonConverter : JsonConverter<List<string>>
 {
     public override List<string> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

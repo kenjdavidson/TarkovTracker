@@ -617,6 +617,11 @@ function applyMarkerFilters(filters) {
     setHazardVisibility(!!filters.hazards);
     setHazardZoneVisibility(!!filters.hazardZones);
     setSwitchVisibility(!!filters.switches);
+    setMarkerTypeVisibility('loot-valuables', !!filters.valuables);
+    setMarkerTypeVisibility('loot-battle-pass', !!filters.battlePassDocuments);
+    setMarkerTypeVisibility('loot-safe', !!filters.safes);
+    setMarkerTypeVisibility('loot-ground-cache', !!filters.groundCaches);
+    setMarkerTypeVisibility('loot-lock', !!filters.locks);
     setBtrStopVisibility(!!filters.btrStops);
     setCustomPinsMode(!!filters.customPins);
     refreshRaidExfilHighlights();

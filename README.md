@@ -1,6 +1,6 @@
 # SayserTarkovTracker
 
-A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.8.2**).
+A Windows desktop map companion for **Escape from Tarkov**. It displays interactive tactical maps with live player tracking from in-game screenshots, raid exfil highlighting from the **O** key panel, plus extracts, quests, spawns, bosses, cultists, custom pins, hazards, and more — styled with a tactical HUD interface (**v2.8.3**).
 
 Built with **WPF** (.NET 10) and **WebView2**.
 
@@ -44,6 +44,7 @@ Toggle marker layers individually or with **Show All** / **Hide All**:
 | **Custom Pin** | User-placed amber waypoint pins (see below) |
 | Hazards | Mortars, minefields, danger zones |
 | Switches | Power switches and similar |
+| Loot | Valuables, battle pass documents, safes, locks, ground caches |
 | BTR stops | BTR route stops (Lighthouse, Streets of Tarkov only) |
 
 Markers use the same icon set as [tarkov.dev](https://tarkov.dev). Quest item markers can show the actual item icon when available.
@@ -89,10 +90,10 @@ Open **SETTINGS** from the top bar (replaces the old screenshot-folder buttons o
 | **Game resolution** | Preset dropdown + custom **Width × Height** with **SET** (tunes EXFIL OCR) |
 | **Overlay default opacity** | Default transparency when the overlay opens (20–100%) |
 | **Overlay follow player** | When enabled, each new screenshot recenters the overlay on your position without changing zoom |
-| **Map data** | **Refresh from tarkov.dev** rebuilds extracts, quests, spawns, bosses, transits, and switches from `json.tarkov.dev` |
+| **Map data** | **Refresh from tarkov.dev** (also runs on startup) rebuilds extracts, quests, spawns, bosses, transits, switches, valuables, battle pass documents, safes, locks, and ground caches from `json.tarkov.dev`. Unchanged API files are skipped. |
 | **Map actions** | **Clear raid exfil highlights** for the current map |
 | **Screenshot maintenance** | **Delete all screenshots** in the configured folder (with confirmation) |
-| **About** | App name and version (**2.8.2**), **Check for updates** (downloads and installs from GitHub Releases) |
+| **About** | App name and version (**2.8.3**), **Check for updates** (downloads and installs from GitHub Releases) |
 
 User preferences are stored in **`settings.json`** next to the executable (not in `%AppData%`). This includes screenshot folder, game resolution, overlay options, last selected map, custom pins per map, and the **Save marker selection** flag. Marker toggle states are saved only when that option is enabled in the **MARKERS** panel.
 
@@ -133,7 +134,7 @@ This feature does not read game memory; it only uses your screenshot image and p
 ### Overlay window
 - Separate always-on-top **Glass HUD** overlay
 - Semi-transparent, resizable (drag edges/corners)
-- Adjustable opacity slider (default level set in **SETTINGS**)
+- Adjustable opacity slider for the map **and** markers (default level set in **SETTINGS**)
 - Optional **center on player** when a new screenshot is parsed (overlay only; keeps your current zoom)
 - Syncs map, markers, levels, filters, custom pins, player position, and raid exfil highlights with the main window
 

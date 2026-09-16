@@ -191,25 +191,14 @@ namespace TarkovTracker
                     }
 
                     window.setOverlayMapOpacity = function(value) {
-                        const svg = document.querySelector('#content svg');
-                        if (svg) {
-                            svg.style.opacity = value;
+                        const content = document.getElementById('content');
+                        if (content) {
+                            content.style.opacity = value;
                         }
 
                         const markerLayer = document.getElementById('markerLayer');
                         if (markerLayer) {
-                            markerLayer.style.opacity = '1';
                             markerLayer.style.pointerEvents = 'none';
-                        }
-
-                        const customMarkerLayer = document.getElementById('customMarkerLayer');
-                        if (customMarkerLayer) {
-                            customMarkerLayer.style.opacity = '1';
-                        }
-
-                        const playerMarker = document.getElementById('playerMarker');
-                        if (playerMarker) {
-                            playerMarker.style.opacity = '1';
                         }
                     };
 

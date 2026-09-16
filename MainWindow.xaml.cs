@@ -60,7 +60,9 @@ namespace TarkovTracker
         private bool _markerFiltersHaveSavedState;
         private bool _suppressMapSelectionPersistence;
         private bool _isInitializing;
-        private bool _startupUpdateCheckStarted;
+        private bool _startupChecksStarted;
+        private Task<MapDataRefreshResult>? _mapDataRefreshTask;
+        private readonly object _mapDataRefreshLock = new();
         private string? _lastQuestTarkovDevUrl;
         private string? _lastQuestWikiUrl;
 
@@ -148,13 +150,30 @@ namespace TarkovTracker
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (_startupUpdateCheckStarted)
+            if (_startupChecksStarted)
                 return;
 
-            _startupUpdateCheckStarted = true;
+            _startupChecksStarted = true;
+
+            await RunStartupMapDataRefreshAsync();
 
             if (_userSettings.CheckForUpdatesOnStartup)
                 await RunStartupUpdateCheckAsync();
+        }
+
+        private async Task RunStartupMapDataRefreshAsync()
+        {
+            try
+            {
+                var progress = new Progress<string>(status => StatusText.Text = status.ToUpperInvariant());
+                MapDataRefreshResult result = await RefreshMapDataFromTarkovDevAsync(progress);
+                if (!string.IsNullOrWhiteSpace(result.Message))
+                    StatusText.Text = result.Message.ToUpperInvariant();
+            }
+            catch
+            {
+                StatusText.Text = "MAP DATA REFRESH FAILED";
+            }
         }
 
         private async Task RunStartupUpdateCheckAsync()
@@ -519,7 +538,7 @@ namespace TarkovTracker
                 : "";
 
             return
-                $"{mapsPrefix}Extract maps: {_mapData.ExtractsByMapName.Count}. Transit maps: {_mapData.TransitsByMapName.Count}. Spawn maps: {_mapData.SpawnsByMapName.Count}. Boss spawn maps: {_mapData.BossSpawnMarkersByMapName.Count}. Label maps: {_mapData.LabelsByMapName.Count}. Quest maps: {_mapData.QuestMarkersByMapName.Count}. Hazard maps: {_mapData.HazardsByMapName.Count}. Switch maps: {_mapData.SwitchesByMapName.Count}.";
+                $"{mapsPrefix}Extract maps: {_mapData.ExtractsByMapName.Count}. Transit maps: {_mapData.TransitsByMapName.Count}. Spawn maps: {_mapData.SpawnsByMapName.Count}. Boss spawn maps: {_mapData.BossSpawnMarkersByMapName.Count}. Label maps: {_mapData.LabelsByMapName.Count}. Quest maps: {_mapData.QuestMarkersByMapName.Count}. Hazard maps: {_mapData.HazardsByMapName.Count}. Switch maps: {_mapData.SwitchesByMapName.Count}. Loot maps: {_mapData.TrackedLootByMapName.Count}.";
         }
 
         internal MapDataRefreshResult? LastMapDataRefresh =>
@@ -529,12 +548,40 @@ namespace TarkovTracker
             IProgress<string>? progress,
             CancellationToken cancellationToken = default)
         {
+            Task<MapDataRefreshResult> pending;
+            lock (_mapDataRefreshLock)
+            {
+                _mapDataRefreshTask ??= RunMapDataRefreshAsync(progress, cancellationToken);
+                pending = _mapDataRefreshTask;
+            }
+
+            try
+            {
+                return await pending;
+            }
+            finally
+            {
+                lock (_mapDataRefreshLock)
+                {
+                    if (ReferenceEquals(_mapDataRefreshTask, pending))
+                        _mapDataRefreshTask = null;
+                }
+            }
+        }
+
+        private async Task<MapDataRefreshResult> RunMapDataRefreshAsync(
+            IProgress<string>? progress,
+            CancellationToken cancellationToken)
+        {
             MapDataRefreshResult result = await TarkovDevMapRefreshService.RefreshAsync(
                 _mapData.OverlayConfigDirectory,
                 progress,
                 cancellationToken);
 
-            _mapData.LoadAll();
+            if (result.FilesWritten <= 0)
+                return result;
+
+            await Task.Run(() => _mapData.LoadAll(), cancellationToken);
 
             if (MapComboBox.SelectedItem is ComboBoxItem)
                 await LoadSelectedMapAsync();
@@ -968,6 +1015,11 @@ namespace TarkovTracker
                 Hazards = ShowHazardsCheckBox?.IsChecked == true,
                 HazardZones = ShowHazardZonesCheckBox?.IsChecked == true,
                 Switches = ShowSwitchesCheckBox?.IsChecked == true,
+                Valuables = ShowValuablesCheckBox?.IsChecked == true,
+                BattlePassDocuments = ShowBattlePassDocumentsCheckBox?.IsChecked == true,
+                Safes = ShowSafesCheckBox?.IsChecked == true,
+                GroundCaches = ShowGroundCachesCheckBox?.IsChecked == true,
+                Locks = ShowLocksCheckBox?.IsChecked == true,
                 BtrStops = supportsBtr && ShowBtrStopsCheckBox?.IsChecked == true, 
                 CustomPins = ShowCustomPinsCheckBox?.IsChecked == true
             };
@@ -1086,6 +1138,11 @@ namespace TarkovTracker
             if (ShowHazardsCheckBox != null) ShowHazardsCheckBox.IsChecked = filters.Hazards;
             if (ShowHazardZonesCheckBox != null) ShowHazardZonesCheckBox.IsChecked = filters.HazardZones;
             if (ShowSwitchesCheckBox != null) ShowSwitchesCheckBox.IsChecked = filters.Switches;
+            if (ShowValuablesCheckBox != null) ShowValuablesCheckBox.IsChecked = filters.Valuables;
+            if (ShowBattlePassDocumentsCheckBox != null) ShowBattlePassDocumentsCheckBox.IsChecked = filters.BattlePassDocuments;
+            if (ShowSafesCheckBox != null) ShowSafesCheckBox.IsChecked = filters.Safes;
+            if (ShowGroundCachesCheckBox != null) ShowGroundCachesCheckBox.IsChecked = filters.GroundCaches;
+            if (ShowLocksCheckBox != null) ShowLocksCheckBox.IsChecked = filters.Locks;
             if (ShowPmcSpawnsCheckBox != null) ShowPmcSpawnsCheckBox.IsChecked = filters.PmcSpawns;
             if (ShowScavSpawnsCheckBox != null) ShowScavSpawnsCheckBox.IsChecked = filters.ScavSpawns;
             if (ShowBossSpawnsCheckBox != null) ShowBossSpawnsCheckBox.IsChecked = filters.BossSpawns;
@@ -1121,6 +1178,11 @@ namespace TarkovTracker
                 Hazards = IsMarkerCheckBoxChecked(ShowHazardsCheckBox),
                 HazardZones = IsMarkerCheckBoxChecked(ShowHazardZonesCheckBox),
                 Switches = IsMarkerCheckBoxChecked(ShowSwitchesCheckBox),
+                Valuables = IsMarkerCheckBoxChecked(ShowValuablesCheckBox),
+                BattlePassDocuments = IsMarkerCheckBoxChecked(ShowBattlePassDocumentsCheckBox),
+                Safes = IsMarkerCheckBoxChecked(ShowSafesCheckBox),
+                GroundCaches = IsMarkerCheckBoxChecked(ShowGroundCachesCheckBox),
+                Locks = IsMarkerCheckBoxChecked(ShowLocksCheckBox),
                 PmcSpawns = IsMarkerCheckBoxChecked(ShowPmcSpawnsCheckBox),
                 ScavSpawns = IsMarkerCheckBoxChecked(ShowScavSpawnsCheckBox),
                 BossSpawns = IsMarkerCheckBoxChecked(ShowBossSpawnsCheckBox),
@@ -1280,6 +1342,11 @@ namespace TarkovTracker
             ShowHazardsCheckBox.IsChecked = true;
             ShowHazardZonesCheckBox.IsChecked = true;
             ShowSwitchesCheckBox.IsChecked = true;
+            ShowValuablesCheckBox.IsChecked = true;
+            ShowBattlePassDocumentsCheckBox.IsChecked = true;
+            ShowSafesCheckBox.IsChecked = true;
+            ShowGroundCachesCheckBox.IsChecked = true;
+            ShowLocksCheckBox.IsChecked = true;
             ShowPmcSpawnsCheckBox.IsChecked = true;
             ShowScavSpawnsCheckBox.IsChecked = true;
             ShowBossSpawnsCheckBox.IsChecked = true;
@@ -1313,6 +1380,11 @@ namespace TarkovTracker
             ShowHazardsCheckBox.IsChecked = false;
             ShowHazardZonesCheckBox.IsChecked = false;
             ShowSwitchesCheckBox.IsChecked = false;
+            ShowValuablesCheckBox.IsChecked = false;
+            ShowBattlePassDocumentsCheckBox.IsChecked = false;
+            ShowSafesCheckBox.IsChecked = false;
+            ShowGroundCachesCheckBox.IsChecked = false;
+            ShowLocksCheckBox.IsChecked = false;
             ShowPmcSpawnsCheckBox.IsChecked = false;
             ShowScavSpawnsCheckBox.IsChecked = false;
             ShowBossSpawnsCheckBox.IsChecked = false;
@@ -1618,6 +1690,85 @@ namespace TarkovTracker
                         NormalizedY = converted.normalizedY,
                         GameY = mapSwitch.Position.Y,
                         SwitchId = mapSwitch.Id
+                    });
+                }
+            }
+
+            if (_mapData.TrackedLootByMapName.TryGetValue(normalizedName, out var lootPoints))
+            {
+                foreach (var loot in lootPoints.Where(p => p.Position != null))
+                {
+                    var converted = ConvertGameToNormalizedMap(loot.Position!.X, loot.Position.Z);
+                    string kind = (loot.Kind ?? "").Trim().ToLowerInvariant();
+                    string markerType = kind switch
+                    {
+                        "valuables" => "loot-valuables",
+                        "battle-pass" => "loot-battle-pass",
+                        "safe" => "loot-safe",
+                        "ground-cache" => "loot-ground-cache",
+                        "lock" => "loot-lock",
+                        _ => ""
+                    };
+                    if (string.IsNullOrWhiteSpace(markerType))
+                        continue;
+
+                    string tooltip = loot.Name;
+                    if (kind == "lock")
+                    {
+                        tooltip = string.IsNullOrWhiteSpace(loot.KeyName)
+                            ? "No key required"
+                            : "Key required\n" + loot.KeyName;
+                        if (!string.IsNullOrWhiteSpace(loot.LockType))
+                            tooltip += "\n" + loot.LockType;
+                        if (loot.NeedsPower)
+                            tooltip += "\nRequires power";
+                    }
+                    else if (kind == "safe")
+                    {
+                        tooltip = loot.Name;
+                        if (!string.IsNullOrWhiteSpace(loot.KeyName))
+                            tooltip += "\nKey required\n" + loot.KeyName;
+                        if (loot.NeedsPower)
+                            tooltip += "\nRequires power";
+                    }
+                    else if (kind == "valuables")
+                    {
+                        tooltip = "Valuables";
+                        if (loot.Items is { Count: > 0 })
+                            tooltip += "\n" + string.Join("\n", loot.Items);
+                    }
+                    else if (kind == "battle-pass")
+                    {
+                        tooltip = "Battle Pass documents";
+                        if (loot.Items is { Count: > 0 })
+                            tooltip += "\n" + string.Join("\n", loot.Items);
+                    }
+                    else
+                    {
+                        if (loot.Items is { Count: > 0 })
+                            tooltip += "\n" + string.Join(", ", loot.Items.Take(8));
+                        if (!string.IsNullOrWhiteSpace(loot.KeyName))
+                            tooltip += "\nKey: " + loot.KeyName;
+                        if (loot.NeedsPower)
+                            tooltip += "\nRequires power";
+                    }
+
+                    markers.Add(new WebMapMarker
+                    {
+                        Name = loot.Name,
+                        MarkerType = markerType,
+                        Faction = "",
+                        CssClass = markerType,
+                        Tooltip = tooltip,
+                        ZoneName = loot.KeyName ?? "",
+                        Categories = kind,
+                        Conditions = loot.LockType ?? "",
+                        Keys = loot.KeyName ?? "",
+                        Position = $"X={loot.Position.X:0.##}, Y={loot.Position.Y:0.##}, Z={loot.Position.Z:0.##}",
+                        NormalizedX = converted.normalizedX,
+                        NormalizedY = converted.normalizedY,
+                        GameY = loot.Position.Y,
+                        HideLabel = true
                     });
                 }
             }
@@ -2576,7 +2727,7 @@ namespace TarkovTracker
                 if (!_userSettings.ScreenshotParsingEnabled)
                 {
                     MessageBox.Show(
-                        "Screenshot parsing is disabled. Enable it in Settings to use Read Latest.",
+                        "Screenshot parsing is disabled. Enable it in Settings to use Read Latest Screenshot.",
                         "Parsing Disabled",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);

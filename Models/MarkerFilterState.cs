@@ -52,6 +52,21 @@ public class MarkerFilterState
     [JsonPropertyName("btrStops")]
     public bool BtrStops { get; set; }
 
+    [JsonPropertyName("valuables")]
+    public bool Valuables { get; set; }
+
+    [JsonPropertyName("battlePassDocuments")]
+    public bool BattlePassDocuments { get; set; }
+
+                [JsonPropertyName("safes")]
+    public bool Safes { get; set; }
+
+    [JsonPropertyName("groundCaches")]
+    public bool GroundCaches { get; set; }
+
+    [JsonPropertyName("locks")]
+    public bool Locks { get; set; }
+
     [JsonPropertyName("customPins")]
     public bool CustomPins { get; set; }
 }

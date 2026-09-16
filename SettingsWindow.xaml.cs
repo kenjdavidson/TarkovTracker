@@ -81,15 +81,14 @@ public partial class SettingsWindow : Window
     private void ShowLastMapDataRefresh()
     {
         MapDataRefreshResult? last = _owner.LastMapDataRefresh;
-        if (last == null || !last.Succeeded)
+        if (last == null || !last.Succeeded || string.IsNullOrWhiteSpace(last.Message))
         {
             MapDataRefreshStatusText.Text = "Using shipped map data until you refresh.";
             MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTextMutedBrush");
             return;
         }
 
-        MapDataRefreshStatusText.Text =
-            $"Last refresh {last.RefreshedUtc.ToLocalTime():g}: {last.QuestMarkers} quest markers, {last.ExtractMaps} extract maps.";
+        MapDataRefreshStatusText.Text = last.Message.ToUpperInvariant();
         MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
     }
 
@@ -205,7 +204,7 @@ public partial class SettingsWindow : Window
     private async void RefreshMapData_Click(object sender, RoutedEventArgs e)
     {
         RefreshMapDataButton.IsEnabled = false;
-        MapDataRefreshStatusText.Text = "DOWNLOADING…";
+        MapDataRefreshStatusText.Text = "CHECKING…";
         MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTextMutedBrush");
 
         try
@@ -219,12 +218,6 @@ public partial class SettingsWindow : Window
 
             MapDataRefreshStatusText.Text = result.Message.ToUpperInvariant();
             MapDataRefreshStatusText.Foreground = (System.Windows.Media.Brush)FindResource("TacticalTerminalGreenBrush");
-            MessageBox.Show(
-                this,
-                result.Message + "\n\nThe current map markers were reloaded.",
-                "Map Data Updated",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
         }
         catch (Exception ex)
         {

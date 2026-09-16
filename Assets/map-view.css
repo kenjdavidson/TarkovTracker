@@ -97,8 +97,8 @@ html, body {
 }
 
 .markerDot {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -111,21 +111,21 @@ html, body {
 }
 
 .markerDot.markerItemIcon {
-    width: 32px;
-    height: 32px;
+    width: 22px;
+    height: 22px;
 }
 
 .markerLabel {
     position: absolute;
-    left: 16px;
-    top: -9px;
+    left: 11px;
+    top: -6px;
     white-space: nowrap;
     font-family: Arial, sans-serif;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
     color: white;
     background: rgba(0,0,0,0.65);
-    padding: 2px 5px;
+    padding: 1px 4px;
     border-radius: 3px;
     text-shadow: 1px 1px 2px black;
 }
@@ -147,26 +147,26 @@ html, body {
 }
 
 .spawn-pmc .markerDot {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/spawn_pmc.png');
 }
 
 .spawn-scav .markerDot {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/spawn_scav.png');
 }
 
 .spawn-boss .markerDot {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/spawn_boss.png');
 }
 
 .spawn-cultist .markerDot {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/spawn_cultist-priest.png');
 }
 
@@ -209,9 +209,33 @@ html, body {
 }
 
 .map-switch .markerDot {
-    width: 26px;
-    height: 26px;
+    width: 18px;
+    height: 18px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/switch.png');
+}
+
+.loot-valuables .markerDot {
+    width: 16px;
+    height: 16px;
+    background-image: url('https://{{MAP_ASSET_HOST}}/interactive/loot_valuables.svg');
+}
+
+.loot-battle-pass .markerDot {
+    width: 16px;
+    height: 16px;
+    background-image: url('https://{{MAP_ASSET_HOST}}/interactive/loot_battle_pass.svg');
+}
+
+.loot-safe .markerDot {
+    background-image: url('https://{{MAP_ASSET_HOST}}/interactive/container_safe.png');
+}
+
+.loot-ground-cache .markerDot {
+    background-image: url('https://{{MAP_ASSET_HOST}}/interactive/container_ground-cache.png');
+}
+
+.loot-lock .markerDot {
+    background-image: url('https://{{MAP_ASSET_HOST}}/interactive/lock.png');
 }
 
 .map-switch .markerLabel {
@@ -219,8 +243,8 @@ html, body {
 }
 
 .btr-stop .markerDot {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     background-image: url('https://{{MAP_ASSET_HOST}}/interactive/btr_stop.png');
 }
 
@@ -356,8 +380,8 @@ polygon.search-match {
 }
 
 .customPinDot {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     transform: translate(-50%, -50%);
     background: linear-gradient(180deg, #ffe082 0%, #ffb300 45%, #f57c00 100%);
     clip-path: polygon(50% 0%, 85% 50%, 50% 100%, 15% 50%);

@@ -71,7 +71,7 @@
                     <Button Content="SETTINGS"
                             Style="{StaticResource TacticalButton}"
                             Click="OpenSettings_Click"/>
-                    <Button Content="READ LATEST"
+                    <Button Content="READ LATEST SCREENSHOT"
                             Style="{StaticResource TacticalButton}"
                             Click="ReadLatestScreenshot_Click"/>
                     <Button Content="RESET VIEW"
@@ -408,7 +408,7 @@
                                       Checked="SaveMarkerFilters_Changed"
                                       Unchecked="SaveMarkerFilters_Changed"/>
 
-                            <UniformGrid Columns="4" Rows="5">
+                            <UniformGrid Columns="4" Rows="6">
 
                                 <CheckBox x:Name="ShowLabelsCheckBox"
                                           Style="{StaticResource TacticalMarkerTile}"
@@ -533,6 +533,75 @@
                                         <Image Width="24" Height="24"
                                                Source="pack://siteoforigin:,,,/Maps/interactive/switch.png"/>
                                         <TextBlock Text="Switch" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </CheckBox>
+
+                                <CheckBox x:Name="ShowValuablesCheckBox"
+                                          Style="{StaticResource TacticalMarkerTile}"
+                                          IsChecked="False"
+                                          Checked="MarkerFilter_Changed"
+                                          Unchecked="MarkerFilter_Changed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Viewbox Width="22" Height="22" Margin="0,2,0,0">
+                                            <Canvas Width="24" Height="24">
+                                                <Polygon Points="4.5,16.2 8,13.2 16,13.2 19.5,16.2 16,19.3 8,19.3"
+                                                         Fill="#D4A017" Stroke="#7A5A12" StrokeThickness="1.1" StrokeLineJoin="Round"/>
+                                                <Polygon Points="4.5,11.2 8,8.2 16,8.2 19.5,11.2 16,14.3 8,14.3"
+                                                         Fill="#F0C94A" Stroke="#7A5A12" StrokeThickness="1.1" StrokeLineJoin="Round"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                        <TextBlock Text="Valuables" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </CheckBox>
+
+                                <CheckBox x:Name="ShowBattlePassDocumentsCheckBox"
+                                          Style="{StaticResource TacticalMarkerTile}"
+                                          IsChecked="False"
+                                          Checked="MarkerFilter_Changed"
+                                          Unchecked="MarkerFilter_Changed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Viewbox Width="20" Height="22" Margin="0,2,0,0">
+                                            <Grid>
+                                                <Rectangle Width="14" Height="18" Fill="#F3EAD2" Stroke="#8A7348" StrokeThickness="1.2" RadiusX="1" RadiusY="1"/>
+                                            </Grid>
+                                        </Viewbox>
+                                        <TextBlock Text="BP Docs" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </CheckBox>
+
+                                <CheckBox x:Name="ShowSafesCheckBox"
+                                          Style="{StaticResource TacticalMarkerTile}"
+                                          IsChecked="False"
+                                          Checked="MarkerFilter_Changed"
+                                          Unchecked="MarkerFilter_Changed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Image Width="24" Height="24"
+                                               Source="pack://siteoforigin:,,,/Maps/interactive/container_safe.png"/>
+                                        <TextBlock Text="Safe" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </CheckBox>
+
+                                <CheckBox x:Name="ShowGroundCachesCheckBox"
+                                          Style="{StaticResource TacticalMarkerTile}"
+                                          IsChecked="False"
+                                          Checked="MarkerFilter_Changed"
+                                          Unchecked="MarkerFilter_Changed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Image Width="24" Height="24"
+                                               Source="pack://siteoforigin:,,,/Maps/interactive/container_ground-cache.png"/>
+                                        <TextBlock Text="Ground Cache" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </CheckBox>
+
+                                <CheckBox x:Name="ShowLocksCheckBox"
+                                          Style="{StaticResource TacticalMarkerTile}"
+                                          IsChecked="False"
+                                          Checked="MarkerFilter_Changed"
+                                          Unchecked="MarkerFilter_Changed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Image Width="24" Height="24"
+                                               Source="pack://siteoforigin:,,,/Maps/interactive/lock.png"/>
+                                        <TextBlock Text="Locks" FontSize="8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </CheckBox>
 

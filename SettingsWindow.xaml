@@ -37,7 +37,7 @@
 
                 <CheckBox x:Name="ScreenshotParsingCheckBox"
                           Style="{StaticResource TacticalSettingsCheckBox}"
-                          Content="Enable screenshot parsing (auto-watch + Read Latest)"
+                          Content="Enable screenshot parsing (auto-watch + Read Latest Screenshot)"
                           Margin="0,0,0,16"
                           Checked="ScreenshotParsingCheckBox_Changed"
                           Unchecked="ScreenshotParsingCheckBox_Changed"/>
@@ -143,7 +143,7 @@
 
                 <!-- Map data -->
                 <TextBlock Text="MAP DATA" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
-                <TextBlock Text="Rebuild extracts, quests, spawns, bosses, transits, and switches from json.tarkov.dev. SVG maps and labels stay as shipped."
+                <TextBlock Text="Rebuild extracts, quests, spawns, bosses, transits, switches, valuables, battle pass documents, safes, locks, and ground caches from json.tarkov.dev. Runs automatically on startup. Unchanged API files are skipped. SVG maps and labels stay as shipped."
                            Style="{StaticResource TacticalBody}"
                            FontSize="10"
                            Foreground="{StaticResource TacticalTextMutedBrush}"

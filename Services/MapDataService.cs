@@ -20,6 +20,7 @@ public class MapDataService
     public Dictionary<string, List<QuestMarker>> QuestMarkersByMapName { get; } = new();
     public Dictionary<string, List<HazardInfo>> HazardsByMapName { get; } = new();
     public Dictionary<string, List<MapSwitchInfo>> SwitchesByMapName { get; } = new();
+    public Dictionary<string, List<TrackedLootPoint>> TrackedLootByMapName { get; } = new();
     public Dictionary<string, BtrMapConfig> BtrByMapName { get; } = new();
     public Dictionary<string, MapLevelsConfig> MapLevelsByKey { get; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -46,6 +47,7 @@ public class MapDataService
             LoadQuestMarkers,
             LoadHazards,
             LoadSwitches,
+            LoadTrackedLoot,
             LoadBtr);
     }
 
@@ -553,6 +555,34 @@ public class MapDataService
 
             RegisterNamedList(SwitchesByMapName, map.Name, map.Switches ?? new List<MapSwitchInfo>());
         }
+    }
+
+    private void LoadTrackedLoot()
+    {
+        TrackedLootByMapName.Clear();
+        string filePath = ConfigPath("tarkov_tracked_loot.json");
+        if (!File.Exists(filePath))
+            return;
+
+        var data = JsonSerializer.Deserialize<TarkovTrackedLootRoot>(File.ReadAllText(filePath), JsonOptions);
+        if (data?.Data?.Maps == null)
+            return;
+
+        foreach (var map in data.Data.Maps)
+        {
+            if (string.IsNullOrWhiteSpace(map.Name))
+                continue;
+
+            string normalized = NormalizeMapName(map.Name);
+            if (normalized.Contains("tutorial", StringComparison.Ordinal))
+                continue;
+
+            RegisterNamedList(TrackedLootByMapName, map.Name, map.Points ?? new List<TrackedLootPoint>());
+        }
+
+        // Ground Zero 21+ is the live tarkov.dev map; do not keep the older dump.
+        if (TrackedLootByMapName.TryGetValue("groundzero21", out List<TrackedLootPoint>? currentGroundZero))
+            TrackedLootByMapName["groundzero"] = currentGroundZero;
     }
 
     private void LoadBtr()

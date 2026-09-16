@@ -17,5 +17,10 @@ public class MarkerFilterPreferences
     public bool BossSpawns { get; set; }
     public bool CultistSpawns { get; set; }
     public bool BtrStops { get; set; }
+    public bool Valuables { get; set; }
+    public bool BattlePassDocuments { get; set; }
+    public bool Safes { get; set; }
+    public bool GroundCaches { get; set; }
+    public bool Locks { get; set; }
     public bool CustomPins { get; set; }
 }
