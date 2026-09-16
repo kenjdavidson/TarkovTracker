@@ -11,9 +11,19 @@ public class UserAppSettings
     public string GameResolutionPreset { get; set; } = "auto";
 
     /// <summary>
-    /// Default overlay map opacity (20-100). Applied when the overlay window opens.
+    /// Maintain OverlayWindow settings such as position, size, and default opacity.
     /// </summary>
-    public double OverlayDefaultOpacityPercent { get; set; } = 80;
+    public OverlaySettings OverlaySettings { get; set; } = new();
+
+    /// <summary>
+    /// Default overlay map opacity (20-100). Applied when the overlay window opens.   This is used to handle any updates to the 
+    /// current settings loading, with future updates it can be removed as people transition to using OverlaySettings directly.
+    /// </summary>
+    [Obsolete("Use OverlaySettings.OverlayDefaultOpacityPercent instead.")]
+    public double OverlayDefaultOpacityPercent { 
+        get { return OverlaySettings.OverlayDefaultOpacityPercent; } 
+        set { OverlaySettings.OverlayDefaultOpacityPercent = value; } 
+    }
 
     /// <summary>
     /// When false, screenshot folder monitoring and manual parse actions are disabled.
