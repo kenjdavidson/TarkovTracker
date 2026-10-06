@@ -18,6 +18,7 @@ let customPins = [];
 let customPinCounter = 0;
 let cachedMapMarkers = [];
 let cachedCustomPins = [];
+let mapRotationDegrees = 0;
 
 function getViewBox() {
     let raw = svg.getAttribute('viewBox');
@@ -46,7 +47,9 @@ function initialize() {
 }
 
 function applyTransform() {
-    content.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    const rotation = mapRotationDegrees % 360;
+    const transformValue = `translate(${panX}px, ${panY}px) rotate(${rotation}deg) scale(${scale})`;
+    content.style.transform = transformValue;
 }
 
 function refreshCounterScales() {
@@ -66,6 +69,12 @@ function resetView() {
     panX = (stage.clientWidth - vb.w * scale) / 2;
     panY = (stage.clientHeight - vb.h * scale) / 2;
 
+    applyTransform();
+    refreshCounterScales();
+}
+
+function setMapRotationDegrees(degrees) {
+    mapRotationDegrees = Number(degrees) || 0;
     applyTransform();
     refreshCounterScales();
 }

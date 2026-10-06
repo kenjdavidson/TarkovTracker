@@ -101,6 +101,8 @@ namespace TarkovTracker
 
         internal bool OverlayCenterOnPlayer => _userSettings.OverlayCenterOnPlayer;
 
+        internal bool RotateMap180Degrees => _userSettings.OverlaySettings.RotateMap180Degrees;
+
         internal bool CheckForUpdatesOnStartup => _userSettings.CheckForUpdatesOnStartup;
 
         public MainWindow()
@@ -386,6 +388,13 @@ namespace TarkovTracker
         {
             _userSettings.OverlayCenterOnPlayer = enabled;
             SaveUserSettings();
+        }
+
+        internal void ApplyRotateMap180Degrees(bool enabled)
+        {
+            _userSettings.OverlaySettings.RotateMap180Degrees = enabled;
+            SaveUserSettings();
+            _ = RefreshMapRotationAsync();
         }
 
         internal void ApplyScreenshotParsingEnabled(bool enabled)
