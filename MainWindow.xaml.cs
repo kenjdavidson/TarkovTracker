@@ -394,17 +394,16 @@ namespace TarkovTracker
         internal void ApplyRotateMap180Degrees(bool enabled)
         {
             string? mapKey = GetCurrentMapStorageKey();
-            if (!string.IsNullOrWhiteSpace(mapKey))
+            if (string.IsNullOrWhiteSpace(mapKey))
             {
-                _userSettings.MapRotationByMap[mapKey] = enabled;
-            }
-            else
-            {
-                _userSettings.OverlaySettings.RotateMap180Degrees = enabled;
+                ApplyMapRotationSettingToUi();
+                return;
             }
 
+            _userSettings.MapRotationByMap[mapKey] = enabled;
             SaveUserSettings();
             _ = RefreshMapRotationAsync();
+            ApplyMapRotationSettingToUi();
         }
 
         private bool GetCurrentMapRotateSetting()
@@ -416,7 +415,7 @@ namespace TarkovTracker
                 return enabled;
             }
 
-            return _userSettings.OverlaySettings.RotateMap180Degrees;
+            return false;
         }
 
         private async Task RefreshMapRotationAsync()
@@ -2097,13 +2096,12 @@ namespace TarkovTracker
                 await _overlayWindow.ApplyShowQuestNamesAsync(showQuestNames);
         }
 
-        private async void MapRotationCheckBox_Changed(object sender, RoutedEventArgs e)
+        private void MapRotationCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isInitializing || MapRotationCheckBox == null)
                 return;
 
             ApplyRotateMap180Degrees(MapRotationCheckBox.IsChecked == true);
-            await RefreshMapRotationAsync();
         }
 
         private async void MarkerSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
