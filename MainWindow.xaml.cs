@@ -397,6 +397,20 @@ namespace TarkovTracker
             _ = RefreshMapRotationAsync();
         }
 
+        private async Task RefreshMapRotationAsync()
+        {
+            double degrees = _userSettings.OverlaySettings.RotateMap180Degrees ? 180d : 0d;
+
+            if (_webViewReady)
+            {
+                await MapWebView.ExecuteScriptAsync(
+                    $"setMapRotationDegrees({degrees.ToString(CultureInfo.InvariantCulture)});");
+            }
+
+            if (_overlayWindow != null)
+                await _overlayWindow.ApplyMapRotationAsync(degrees);
+        }
+
         internal void ApplyScreenshotParsingEnabled(bool enabled)
         {
             _userSettings.ScreenshotParsingEnabled = enabled;
@@ -651,6 +665,7 @@ namespace TarkovTracker
             await ApplyMarkerVisibility();
             RedrawLastMarker();
             await SyncOverlayToCurrentMapAsync();
+            await RefreshMapRotationAsync();
 
             StatusText.Text = _currentMapConfig == null
                 ? $"Loaded map: {mapFileName}. No config found."
@@ -3039,6 +3054,7 @@ namespace TarkovTracker
 
             _overlayWindow.ConfigureMapAssetHost(_mapsFolder);
             await _overlayWindow.LoadMapHtmlAsync(_currentMapHtml);
+            await _overlayWindow.ApplyMapRotationAsync(_userSettings.OverlaySettings.RotateMap180Degrees ? 180d : 0d);
 
             if (!string.IsNullOrWhiteSpace(_lastMapMarkersJson))
                 await _overlayWindow.SetMapMarkersAsync(_lastMapMarkersJson);
