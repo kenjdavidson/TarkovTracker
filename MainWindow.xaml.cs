@@ -101,7 +101,7 @@ namespace TarkovTracker
 
         internal bool OverlayCenterOnPlayer => _userSettings.OverlayCenterOnPlayer;
 
-        internal bool RotateMap180Degrees => _userSettings.OverlaySettings.RotateMap180Degrees;
+        internal bool RotateMap180Degrees => GetCurrentMapRotateSetting();
 
         internal bool CheckForUpdatesOnStartup => _userSettings.CheckForUpdatesOnStartup;
 
@@ -392,14 +392,29 @@ namespace TarkovTracker
 
         internal void ApplyRotateMap180Degrees(bool enabled)
         {
-            _userSettings.OverlaySettings.RotateMap180Degrees = enabled;
+            string? mapKey = GetCurrentMapStorageKey();
+            if (!string.IsNullOrWhiteSpace(mapKey))
+                _userSettings.MapRotationByMap[mapKey] = enabled;
+
             SaveUserSettings();
             _ = RefreshMapRotationAsync();
         }
 
+        private bool GetCurrentMapRotateSetting()
+        {
+            string? mapKey = GetCurrentMapStorageKey();
+            if (!string.IsNullOrWhiteSpace(mapKey) &&
+                _userSettings.MapRotationByMap.TryGetValue(mapKey, out bool enabled))
+            {
+                return enabled;
+            }
+
+            return _userSettings.OverlaySettings.RotateMap180Degrees;
+        }
+
         private async Task RefreshMapRotationAsync()
         {
-            double degrees = _userSettings.OverlaySettings.RotateMap180Degrees ? 180d : 0d;
+            double degrees = GetCurrentMapRotateSetting() ? 180d : 0d;
 
             if (_webViewReady)
             {
@@ -666,6 +681,13 @@ namespace TarkovTracker
             RedrawLastMarker();
             await SyncOverlayToCurrentMapAsync();
             await RefreshMapRotationAsync();
+
+            if (RotateMap180CheckBox != null)
+            {
+                _suppressRotateMapRefresh = true;
+                RotateMap180CheckBox.IsChecked = GetCurrentMapRotateSetting();
+                _suppressRotateMapRefresh = false;
+            }
 
             StatusText.Text = _currentMapConfig == null
                 ? $"Loaded map: {mapFileName}. No config found."
@@ -3054,7 +3076,7 @@ namespace TarkovTracker
 
             _overlayWindow.ConfigureMapAssetHost(_mapsFolder);
             await _overlayWindow.LoadMapHtmlAsync(_currentMapHtml);
-            await _overlayWindow.ApplyMapRotationAsync(_userSettings.OverlaySettings.RotateMap180Degrees ? 180d : 0d);
+            await _overlayWindow.ApplyMapRotationAsync(GetCurrentMapRotateSetting() ? 180d : 0d);
 
             if (!string.IsNullOrWhiteSpace(_lastMapMarkersJson))
                 await _overlayWindow.SetMapMarkersAsync(_lastMapMarkersJson);
