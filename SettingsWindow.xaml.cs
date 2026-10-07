@@ -14,7 +14,6 @@ public partial class SettingsWindow : Window
     private bool _suppressResolutionRefresh;
     private bool _suppressOverlayOpacityRefresh;
     private bool _suppressOverlayCenterRefresh;
-    private bool _suppressRotateMapRefresh;
     private bool _isLoadingSettings;
 
     public SettingsWindow(MainWindow owner)
@@ -24,7 +23,6 @@ public partial class SettingsWindow : Window
         _isLoadingSettings = true;
         _suppressOverlayOpacityRefresh = true;
         _suppressOverlayCenterRefresh = true;
-        _suppressRotateMapRefresh = true;
         _suppressResolutionRefresh = true;
         InitializeComponent();
         LoadCurrentValues();
@@ -68,10 +66,6 @@ public partial class SettingsWindow : Window
         _suppressOverlayCenterRefresh = true;
         OverlayCenterOnPlayerCheckBox.IsChecked = _owner.OverlayCenterOnPlayer;
         _suppressOverlayCenterRefresh = false;
-
-        _suppressRotateMapRefresh = true;
-        RotateMap180CheckBox.IsChecked = _owner.RotateMap180Degrees;
-        _suppressRotateMapRefresh = false;
 
         CheckForUpdatesOnStartupCheckBox.IsChecked = _owner.CheckForUpdatesOnStartup;
 
@@ -197,14 +191,6 @@ public partial class SettingsWindow : Window
             return;
 
         _owner.ApplyOverlayCenterOnPlayer(OverlayCenterOnPlayerCheckBox.IsChecked == true);
-    }
-
-    private void RotateMap180CheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_isLoadingSettings || _suppressRotateMapRefresh)
-            return;
-
-        _owner.ApplyRotateMap180Degrees(RotateMap180CheckBox.IsChecked == true);
     }
 
     private void CheckForUpdatesOnStartupCheckBox_Changed(object sender, RoutedEventArgs e)

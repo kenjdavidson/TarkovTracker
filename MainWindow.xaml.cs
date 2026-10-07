@@ -137,6 +137,7 @@ namespace TarkovTracker
             ApplySaveMarkerFiltersSettingToUi();
             ApplyAutoSelectFloorSettingToUi();
             ApplyShowQuestNamesSettingToUi();
+            ApplyMapRotationSettingToUi();
             ApplyMarkerFiltersForSession();
 
             _suppressMarkerFilterRefresh = false;
@@ -687,6 +688,7 @@ namespace TarkovTracker
             RedrawLastMarker();
             await SyncOverlayToCurrentMapAsync();
             await RefreshMapRotationAsync();
+            ApplyMapRotationSettingToUi();
 
             StatusText.Text = _currentMapConfig == null
                 ? $"Loaded map: {mapFileName}. No config found."
@@ -1155,6 +1157,14 @@ namespace TarkovTracker
                 return;
 
             ShowQuestNamesCheckBox.IsChecked = _userSettings.ShowQuestNames;
+        }
+
+        private void ApplyMapRotationSettingToUi()
+        {
+            if (MapRotationCheckBox == null)
+                return;
+
+            MapRotationCheckBox.IsChecked = GetCurrentMapRotateSetting();
         }
 
         private void ApplyMarkerFiltersForSession()
@@ -2085,6 +2095,15 @@ namespace TarkovTracker
 
             if (_overlayWindow != null)
                 await _overlayWindow.ApplyShowQuestNamesAsync(showQuestNames);
+        }
+
+        private async void MapRotationCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing || MapRotationCheckBox == null)
+                return;
+
+            ApplyRotateMap180Degrees(MapRotationCheckBox.IsChecked == true);
+            await RefreshMapRotationAsync();
         }
 
         private async void MarkerSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)

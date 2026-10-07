@@ -141,20 +141,6 @@
                            TextWrapping="Wrap"
                            Margin="0,0,0,12"/>
 
-                <CheckBox x:Name="RotateMap180CheckBox"
-                          Style="{StaticResource TacticalSettingsCheckBox}"
-                          Content="Rotate map 180° to match MapGenie orientation"
-                          Margin="0,0,0,4"
-                          Checked="RotateMap180CheckBox_Changed"
-                          Unchecked="RotateMap180CheckBox_Changed"/>
-
-                <TextBlock Text="Applies the same 180° rotation to both the main map and the always-on-top overlay."
-                           Style="{StaticResource TacticalBody}"
-                           FontSize="10"
-                           Foreground="{StaticResource TacticalTextMutedBrush}"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,16"/>
-
                 <!-- Map data -->
                 <TextBlock Text="MAP DATA" Style="{StaticResource TacticalLabel}" Margin="0,0,0,4"/>
                 <TextBlock Text="Rebuild extracts, quests, spawns, bosses, transits, switches, valuables, battle pass documents, safes, locks, and ground caches from json.tarkov.dev. Runs automatically on startup. Unchanged API files are skipped. SVG maps and labels stay as shipped."
