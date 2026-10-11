@@ -51,8 +51,24 @@ function getVisualCounterRotation() {
     return (rotation === 180 || rotation === -180) ? -180 : 0;
 }
 
+function isHalfTurnRotation() {
+    const rotation = ((mapRotationDegrees % 360) + 360) % 360;
+    return Math.abs(rotation - 180) < 0.001;
+}
+
+function recenterContentForRotation() {
+    const vb = getViewBox();
+    const contentWidth = vb.w * scale;
+    const contentHeight = vb.h * scale;
+    const baseX = (stage.clientWidth - contentWidth) / 2;
+    const baseY = (stage.clientHeight - contentHeight) / 2;
+
+    panX = baseX + (isHalfTurnRotation() ? contentWidth : 0);
+    panY = baseY + (isHalfTurnRotation() ? contentHeight : 0);
+}
+
 function applyTransform() {
-    const rotation = mapRotationDegrees % 360;
+    const rotation = ((mapRotationDegrees % 360) + 360) % 360;
     const transformValue = `translate(${panX}px, ${panY}px) rotate(${rotation}deg) scale(${scale})`;
     content.style.transform = transformValue;
 }
@@ -74,12 +90,26 @@ function resetView() {
     panX = (stage.clientWidth - vb.w * scale) / 2;
     panY = (stage.clientHeight - vb.h * scale) / 2;
 
+    if (isHalfTurnRotation()) {
+        panX += vb.w * scale;
+        panY += vb.h * scale;
+    }
+
     applyTransform();
     refreshCounterScales();
 }
 
 function setMapRotationDegrees(degrees) {
     mapRotationDegrees = Number(degrees) || 0;
+
+    if (isHalfTurnRotation()) {
+        panX = (stage.clientWidth - (getViewBox().w * scale)) / 2 + (getViewBox().w * scale);
+        panY = (stage.clientHeight - (getViewBox().h * scale)) / 2 + (getViewBox().h * scale);
+    } else {
+        panX = (stage.clientWidth - (getViewBox().w * scale)) / 2;
+        panY = (stage.clientHeight - (getViewBox().h * scale)) / 2;
+    }
+
     applyTransform();
     refreshCounterScales();
 }
